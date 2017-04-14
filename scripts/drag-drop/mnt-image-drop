@@ -1,0 +1,4 @@
+[Desktop Entry]
+Name=Image mounter
+Exec=/scripts/mount-image-file %U
+Type=Application
