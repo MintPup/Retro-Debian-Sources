@@ -1,0 +1,4 @@
+[Desktop Entry]
+Name=Wallpaper changer
+Exec=/scripts/wallpaper-set %U
+Type=Application
