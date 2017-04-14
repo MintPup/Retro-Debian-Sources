@@ -1,0 +1,13 @@
+#!/bin/sh
+
+echo "Clean configuration files from uninstalled packages and remove downloaded debs from /var/cache/apt/archives"
+
+read -p "Do you want to continue? (y/n)?" choose
+case "$choose" in
+  y|Y ) echo "Continue...";;
+  * ) exit;;
+esac
+
+sudo dpkg --purge "$(dpkg --get-selections | grep deinstall | cut -f1)" 2> /dev/null
+apt-get clean
+echo "All done."
