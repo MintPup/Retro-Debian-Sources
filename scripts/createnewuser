@@ -1,0 +1,22 @@
+#!/bin/sh
+# Based on: https://github.com/MintPup/DebianDog-Wheezy/blob/master/scripts/addnewuser-cli.sh
+# GNU GPL v3 applies.
+
+if [ "$(whoami)" != "root" ]; then
+echo "You have to run this script as Superuser."
+exit
+fi
+
+read -p "Create new user? (y/n)?" choose
+case "$choose" in
+  y|Y ) echo "Continue...";;
+  * ) exit;;
+esac
+
+read -p "Type user name: " newuser
+adduser "$newuser" --gecos GECOS
+
+usermod -a -G sudo,audio,dip,video,plugdev,netdev,cdrom,floppy "$newuser" #Etch, Lenny.
+#usermod -a -G sudo,fuse,audio,dip,video,plugdev,scanner,lpadmin,netdev,cdrom,floppy,bluetooth "$newuser" #Squeeze, Wheezy, Jessie, Stretch, SID
+
+echo "$newuser ALL=(ALL) ALL" >> /etc/sudoers
