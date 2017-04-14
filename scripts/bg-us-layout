@@ -1,0 +1,6 @@
+#!/bin/sh
+set -x
+
+setxkbmap bg phonetic
+xmessage "Activated BG layout. To restore the US click OK."
+setxkbmap us
