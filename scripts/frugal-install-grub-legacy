@@ -193,7 +193,7 @@ case "$choose" in
 esac
 
 make_menu
-#system_copy
+system_copy
 
 echo "If you do not see errors all should be OK."
 
