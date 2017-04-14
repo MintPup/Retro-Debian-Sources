@@ -1,0 +1,2 @@
+#!/bin/sh
+x-terminal-emulator -e mplayer -prefer-ipv4 -playlist "$@"
