@@ -1,0 +1,4 @@
+[Desktop Entry]
+Name=Module loader
+Exec=/scripts/module-loader %U
+Type=Application
