@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if [ ! "$1" ]; then
+echo "usage: build-deb package-directory"
+echo "Make sure you have read-write permissions for the package-directory"
+echo "and location or run the script again using sudo."
+exit
+fi
+
+DIR="$1"
+cd "$(dirname "$DIR")"
+
+if [ -f "$(dirname "$DIR"/DEBIAN/control)" ]; then
+  echo "Missing control file. Exiting now."
+  exit
+else
+  mkdir -p "$DIR"_new
+  fakeroot dpkg-deb -b "$DIR" "$DIR"_new/
+fi
