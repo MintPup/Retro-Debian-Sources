@@ -1,0 +1,4 @@
+#!/bin/sh
+#Based on: https://github.com/MintPup/DebianDog-Wheezy/blob/master/scripts/install-deb-and-depends.sh
+
+x-terminal-emulator -e sh -c "sudo dpkg -i "$@"; sudo apt-get -f install -q -y; sh"
