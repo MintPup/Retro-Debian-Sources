@@ -1,0 +1,186 @@
+#!/bin/sh
+# 20161026 saintless for Retro-Debian
+# GNU GPL v3 applies. No warranty of any kind.
+# Includes moded code from examples in linux forums and man pages like:
+# http://www.murga-linux.com/puppy/viewtopic.php?t=51697
+# http://stackoverflow.com/questions/226703/how-do-i-prompt-for-input-in-a-linux-shell-script
+# https://github.com/MintPup/DebianDog-Wheezy/tree/master/scripts
+# 20170415 Some functions synchronization with:
+# https://github.com/MintPup/Retro-Debian-Sources/blob/master/scripts/frugal-install-grub-legacy
+
+
+if [ "$(whoami)" != "root" ]; then
+echo "You have to run this script as Superuser."
+exit
+fi
+
+echo
+echo "Some special scripts as module loader, installer and more will not"
+echo "work properly in Full install. Recommended to use Frugal instead."
+read -p "Continue with Full install? (y/n)?" choose
+case "$choose" in
+  y|Y ) echo "Continue...";;
+  * ) exit;;
+esac
+
+if ! which grub-install ; then
+echo "Install grub and run the scripts again."
+exit
+fi
+
+SRC_DIR=$(pwd)
+VER=etch     #easy to change with lenny, squeeze, wheezy later (without spaces to add entry properly in make_menu function).
+SQFS=01-retro-"$VER".squashfs
+
+echo
+echo Running the installer from "$SRC_DIR".
+
+if [ ! -f "$SRC_DIR"/"$SQFS" ]; then
+echo "$SQFS" is missing.
+echo "Find it and run the script from there."
+exit
+fi
+
+if [ ! -f "$SRC_DIR"/initrd1.img ]; then
+echo "initrd1.img is missing."
+echo "Find it and run the script from the same directory."
+exit
+fi
+
+if [ ! -f "$SRC_DIR"/vmlinuz1 ]; then
+echo "vmlinuz1 is missing."
+echo "Find it and run the script from the same directory."
+exit
+fi
+
+system_copy () {
+echo Copying files from "$SRC_DIR"/"$SQFS" to "$MNT"
+mkdir /tmp/mountfs
+mount -o loop "$SRC_DIR"/"$SQFS" /tmp/mountfs
+cp -a /tmp/mountfs/* "$MNT"/
+rm -fr "$MNT"/live
+cp -f "$SRC_DIR"/initrd1.img "$MNT"/boot/
+cp -f "$SRC_DIR"/vmlinuz1 "$MNT"/boot/
+sync
+umount /tmp/mountfs
+}
+
+write_grub() { # source grub4dosconfig by Masaki Shinomiya: http://www.murga-linux.com/puppy/viewtopic.php?t=51697
+#Backup MBR
+dd if="$WHERETO" of="$MNT"/"$(basename "$WHERETO")".mbr.bak bs=512 count=63 2>/dev/null
+
+# Write grub4dos MBR
+grub-install --no-floppy --force-lba --root-directory="$MNT" "$WHERETO"
+
+mv "$MNT"/boot/grub/default "$MNT"/boot/grub/default-noload
+#cp -f /scripts/wallpapers/bike_gua.xpm.gz "$MNT"/boot/grub/ #in case I like to add boot menu background later.
+sync
+
+echo "Grub-Legacy installed and old MBR saved. You can restore it with:"
+echo "cat $MNT/$(basename "$WHERETO").mbr.bak > $WHERETO"
+}
+
+drv_format () {
+echo Formatting /dev/"$DRV"
+umount /dev/"$DRV"
+echo y | mkfs.ext2 /dev/"$DRV"
+tune2fs -c 0 -i 0 /dev/"$DRV"
+mount /dev/"$DRV" "$MNT"
+}
+
+boot_flag () {  # source: http://www.cyberciti.biz/faq/linux-unix-bsd-shell-script-to-get-digits-from-string/
+#PNUM=$(echo "$PART" | grep -o "[0-9]) 
+PNUM=$(echo "$PART" | grep -oE "[[:digit:]]{1,}")
+sfdisk -A"$PNUM" "$WHERETO" 2>/dev/null
+}
+
+make_menu () {
+# Generate boot menu.lst
+
+UUID=$(blkid -o value -s UUID "$PART")
+
+# Generate menu.lst
+echo "
+# menu.lst produced by grub4dosconfig-v1.7
+color white/blue black/cyan white/black cyan/black
+#splashimage=(hd0,0)/boot/grub/bike_gua.xpm.gz
+timeout 10
+default 0
+
+title Retro-$VER Full install
+ uuid $UUID
+ kernel /boot/vmlinuz1 root=UUID=$UUID rw
+ initrd /boot/initrd1.img
+
+title Reboot computer
+  reboot
+
+" > "$MNT"/boot/grub/menu.lst
+}
+
+echo
+echo "Retro-$VER Full Installer"
+echo
+
+BOOTDRV=$(mount | sed '/\/live\/image /!d;s, .*$,,;s,^.*/,,')
+echo "$BOOTDRV" is your boot partition.
+  
+DRVSALL=$(blkid | sed '/cd\|sd\|sr\|hd\|mm/!d;s,^.*/,,;s," $,,;s,:.*", ,' | grep -E -v "swap|crypt|jfs|loop|sr0|cdrom" | cut -d" " -f1) 
+                        
+echo "Choose where to make full install. The partition will be formatted to ext2"
+echo "filesystem and all data will be erased. There will be prompt with option"
+echo "to exit the script before formatting. Be careful to type the correct drive."
+echo
+echo "Choose the drive and press Enter:"
+echo "$DRVSALL"
+read -p "Type your choice, like: hda1: " DRV
+if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+read -p "No drive $DRV, try again: " DRV
+	if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+read -p "No drive $DRV, last try before exit: " DRV
+   if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+echo No drive "$DRV", run the script again.
+exit
+   fi
+   fi
+fi
+
+echo "$DRV" is your choice.
+
+if [ "$BOOTDRV" = "$DRV" ]; then
+echo "$BOOTDRV" is your boot partition. You can not use it.
+exit
+fi
+
+PART=/dev/"$DRV"
+WHERETO="$(echo /dev/"$DRV" | sed 's/.$//')"
+MNT=/media/"$DRV"
+
+mkdir -p "$MNT"
+
+echo /dev/"$DRV" will be formatted to ext2 filesystem.
+echo All files on /dev/"$DRV" will be erased!
+read -p "Format /dev/$DRV? (y/n)?" choose
+case "$choose" in
+  y|Y ) drv_format;;
+  * ) exit;;
+esac
+
+echo
+echo You can install Grub-Legacy to "$WHERETO" mbr
+echo "But this will make any other OS you have not-bootable."
+echo "If you already have linux boot loader just skip this step."
+echo
+read -p "Install Grub-Legacy to mbr? (y/n)?" choose
+case "$choose" in
+  y|Y ) write_grub && boot_flag;;
+  * ) echo "Skipping install to mbr.";;
+esac
+
+make_menu
+system_copy
+
+echo "If you do not see errors all should be OK."
+
+exit
+
