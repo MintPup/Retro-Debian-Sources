@@ -1,0 +1,4 @@
+#!/bin/sh
+DT=$(date +%Y-%m-%d.%H:%M:%S)
+scrot -s -d 5 "$DT".png
+#scrot -d 5 -q 95 -t 30 "$DT".jpeg -b -s
