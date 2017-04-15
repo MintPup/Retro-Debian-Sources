@@ -1,0 +1,8 @@
+#!/bin/sh
+
+xset s off -dpms
+
+#Skiping frames on slow CPU and low RAM PC:
+mplayer -lavdopts skipframe=nonref:skiploopfilter=all "$@"
+
+xset s on -dpms
