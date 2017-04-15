@@ -1,4 +1,4 @@
-*live boot v2.0.15-1 docs*
+**live boot v2.0.15-1 docs**
 
 live-boot - System Boot Scripts
 
@@ -31,26 +31,33 @@ Configuration Files live-boot can be configured (but not activated) through conf
 
 OPTIONS
 
+
    live-boot currently features the following parameters.
+   
 
    access=ACCESS
+   
        Set the accessibility level  for  physically  or  visually  impared
        users.  ACCESS  must  be  one  of  v1, v2, v3, m1, or m2. v1=lesser
        visual impairment,  v2=moderate  visual  impairment,  v3=blindness,
        m1=minor motor difficulties, m2=moderate motor difficulties.
 
    console=TTY,SPEED
+   
        Set  the  default  console to be used with the "live-getty" option.
        Example: "console=ttyS0,115200"
 
    debug
+   
        Makes initramfs boot process more verbose.
        Use: debug=1
        Without setting debug to a value the messages may not be shown.
 
    fetch=URL
+   
 
    httpfs=URL
+   
        Another form of netboot by downloading  a  squashfs  image  from  a
        given url.  The fetch method copies the image to ram and the httpfs
        method uses fuse and httpfs2 to mount the image in  place.  Copying
@@ -69,6 +76,7 @@ OPTIONS
        You may also use the live iso image in place of the squashfs image.
 
    iscsi=server-ip[,server-port];target-name
+   
        Boot from an iSCSI target that has an iso or disk live image as one
        of its LUNs. The specified target is searched for a LUN which looks
        like a live media. If you use the iscsitarget software iSCSI target
@@ -82,21 +90,26 @@ OPTIONS
          # Wthreads or MaxConnections
 
    fromiso=/PATH/TO/IMAGE
+   
        Allows  to  use  a  filesystem  from  within  an  iso  image that's
        available on live-media.
 
    ignore_uuid
+   
        Do not check that any UUID embedded in the  initramfs  matches  the
        discovered  medium.  live-boot  may  be  told to generate a UUID by
        setting LIVE_GENERATE_UUID=1 when building the initramfs.
 
    integrity-check
+   
        If specified, an MD5 sum is calculated on  the  live  media  during
        boot  and  compared  to  the value found in md5sum.txt found in the
        root directory of the live media.
 
    ip=[CLIENT_IP]:[SERVER_IP]:[GATEWAY_IP]:[NETMASK]:[HOSTNAME]:[DEVICE]:[AUTOCONF]
+   
    [,[CLIENT_IP]:[SERVER_IP]:[GATEWAY_IP]:[NETMASK]:[HOSTNAME]:[DEVICE]:[AUTOCONF]]
+   
        Let you specify the name(s) and the  options  of  the  interface(s)
        that  should be configured at boot time. Do not specify this if you
        want to use dhcp (default). It will be changed in a future  release
@@ -104,11 +117,13 @@ OPTIONS
        ip=10.0.0.1::10.0.0.254:255.255.255.0::eth0,:::::eth1:dhcp).
 
    ip=[frommedia]
+   
        If this variable is set, dhcp and  static  configuration  are  just
        skipped  and  the system will use the (must be) media-preconfigured
        /etc/network/interfaces instead.
 
    {live-media|bootfrom}=DEVICE
+   
        If you specify one of this two  equivalent  forms,  live-boot  will
        first  try  to find this device for the "/live" directory where the
        read-only root  filesystem  should  reside.  If  it  did  not  find
@@ -120,58 +135,70 @@ OPTIONS
        keyword.
 
    {live-media-encryption|encryption}=TYPE
+   
        live-boot   will  mount  the  encrypted  rootfs  TYPE,  asking  the
        passphrase,  useful  to  build  paranoid  live  systems  :-).  TYPE
        supported so far are "aes" for loop-aes encryption type.
 
    live-media-offset=BYTES
+   
        This  way you could tell live-boot that your image starts at offset
        BYTES in the above specified or autodiscovered device,  this  could
        be  useful  to hide the Debian Live iso or image inside another iso
        or image, to create "clean" images.
 
    live-media-path=PATH
+   
        Sets the path to the live filesystem on the medium. By default,  it
        is  set  to  '/live' and you should not change that unless you have
        customized your media accordingly.
 
    live-media-timeout=SECONDS
+   
        Set  the  timeout  in  seconds  for   the   device   specified   by
        "live-media=" to become ready before giving up.
 
    module=NAME
+   
        Instead of using the default optional file "filesystem.module" (see
        below) another  file  could  be  specified  without  the  extension
        ".module";  it  should  be  placed on "/live" directory of the live
        medium.
 
    netboot[=nfs|cifs]
+   
        This tells live-boot to perform  a  network  mount.  The  parameter
        "nfsroot="  (with optional "nfsopts="), should specify where is the
        location of the root filesystem.   With  no  args,  will  try  cifs
        first, and if it fails nfs.
 
    nfsopts=
+   
        This lets you specify custom nfs options.
 
    nofastboot
+   
        This  parameter disables the default disabling of filesystem checks
        in /etc/fstab. If you have static filesystems on your harddisk  and
        you  want  them  to  be  checked  at boot time, use this parameter,
        otherwise they are skipped.
 
    nopersistent
+   
        disables the "persistent" feature, useful if the  bootloader  (like
        syslinux) has been installed with persistent enabled.
 
    noprompt
+   
        Do  not  prompt  to  eject  the CD or remove the USB flash drive on
        reboot.
 
    swapon
+   
        This parameter enables usage of local swap partitions.
 
    persistent[={nofiles|cryptsetup}]
+   
        live-boot will look for persistent and snapshot partitions or files
        labeled   "live-rw",   "home-rw",   and  files  called  "live-sn*",
        "home-sn*" and will try to, in order:  mount  as  /cow  the  first,
@@ -188,12 +215,14 @@ OPTIONS
        decryption passphrase.
 
    persistent-path=PATH
+   
        live-boot  will look for persistency files in the root directory of
        a partition, with this parameter, the path  can  be  configured  so
        that  you  can  have  multiple directories on the same partition to
        store persistency files.
 
    persistent-subtext=SUFFIX
+   
        Add a suffix when searching for the image  filenames  or  partition
        labels  to  use  for  the  above  mentioned persistent feature, the
        SUFFIX will be added after a dash (e.g.: "live-sn" would  transform
@@ -201,29 +230,35 @@ OPTIONS
        based live-systems with different persistent storage choices.
 
    {preseed/file|file}=FILE
+   
        A path to a file present on the rootfs could  be  used  to  preseed
        debconf database.
 
    package/question=VALUE
+   
        All  debian installed packages could be preseeded from command-line
        that way,  beware  of  blanks  spaces,  they  will  interfere  with
        parsing, use a preseed file in this case.
 
    quickreboot
+   
        This  option causes live-boot to reboot without attempting to eject
        the media and without asking the user to remove the boot media.
 
    showmounts
+   
        This  parameter  will  make  live-boot  to  show  on  "/"  the   ro
        filesystems  (mostly compressed) on "/live". This is not enabled by
        default because could lead to problems by applications like  "mono"
        which store binary paths on installation.
 
    silent
+   
        If  you  boot with the normal quiet parameter, live-boot hides most
        messages of its own. When adding silent, it hides all.
 
    todisk=DEVICE
+   
        Adding this parameter,  live-boot  will  try  to  copy  the  entire
        read-only  media  to  the specified device before mounting the root
        filesystem. It probably needs a lot of free space. Subsequent boots
@@ -231,22 +266,26 @@ OPTIONS
        boot parameter with the same DEVICE used this time.
 
    toram
+   
        Adding this  parameter,  live-boot  will  try  to  copy  the  whole
        read-only  media  to  the  computer's  RAM before mounting the root
        filesystem. This could need a lot of ram, according  to  the  space
        used by the read-only media.
 
    union=aufs|unionfs
+   
        By  default,  live-boot  uses  aufs.  With  this parameter, you can
        switch to unionfs.
 
 FILES (old)
 
    /etc/live.conf
+   
        Some variables can be configured via this config file  (inside  the
        live system).
 
    live/filesystem.module
+   
        This  optional  file  (inside  the  live  media) contains a list of
        white-space or carriage-return-separated file  names  corresponding
        to  disk images in the "/live" directory. If this file exists, only
@@ -258,6 +297,7 @@ FILES (old)
        in alphanumeric order.
 
    /etc/live-persistence.binds
+   
        This  optional file (which resides in the rootfs system, not in the
        live media) is used as a list of  directories  which  not  need  be
        persistent: ie. their content does not need to survive reboots when
@@ -285,11 +325,14 @@ live-snapshot - simple script to ease persistence usage
 
 SYNOPSIS
 
-   live-snapshot     [-c|--cow     DIRECTORY]     [-d|--device     DEVICE]
-   [-e|--exclude-list FILE] [-o|--output FILE] [-t|--type TYPE]
+   live-snapshot     [-c|--cow     DIRECTORY]     [-d|--device     DEVICE]     [-e|--exclude-list FILE] [-o|--output FILE] [-t|--type TYPE]
+   
    live-snapshot [-r|--resync-string STRING]
+   
    live-snapshot [-h|--help]
+   
    live-snapshot [-u|--usage]
+   
    live-snapshot [-v|--version]
 
 DESCRIPTION
@@ -302,6 +345,7 @@ DESCRIPTION
 OPTIONS
 
    -c, --cow DIRECTORY
+   
        specifies  the  input directory to be cloned in the image file. Its
        default value "/live/cow" should be right for most uses. However it
        could  be  handy  to  specify "/home" and type ext2 for the type to
@@ -309,6 +353,7 @@ OPTIONS
        home.
 
    -d, --device DEVICE
+   
        sets  the  device  where  the  media which the snapshot/persistence
        file/partition will be put. If it is not specified, a tmpfs will be
        used  and  linked  to  the  user's  desktop  to move it where it is
@@ -317,43 +362,53 @@ OPTIONS
        specified after the "--output" value or with a sane default.
 
    -e, --exclude-list FILE
+   
        a file containing a list of  filenames/paths  that  should  not  be
        saved.  This  exclude list will be remebered on the target snapshot
        media for reuse.
 
    -o, --output FILE
+   
        the filename/label used for  the  output  file/partition.  If  left
        blank, live-snapshot will search for a proper file on the device or
        use the whole partition.
 
    -r, --resync-string STRING
+   
        internally used on resyncs.
 
    -f, --refresh
+   
        try to do the same operation that should be done at reboot or halt,
        resyncing  boot-time auto discovered snapshots. Useful to prevent a
        crash or surge power-off.
 
    -t, --type TYPE
+   
        Type could be one of "cpio", "squashfs", "ext2", "ext3", "ext4", or
        "jffs2".
 
    -h, --help
+   
        display help and exit.
 
    -u, --usage
+   
        show usage and exit.
 
    -v, --version
+   
        output version information and exit.
 
 FILES
 
    /etc/live.conf
+   
        Some  variables  can be configured via this config file (inside the
        live system).
 
    live/filesystem.module
+   
        This optional file (inside the  live  media)  contains  a  list  of
        white-space  or  carriage-return-separated file names corresponding
        to disk images in the "/live" directory. If this file exists,  only
@@ -365,6 +420,7 @@ FILES
        in alphanumeric order.
 
    /etc/live-persistence.binds
+   
        This optional file (which resides in the rootfs system, not in  the
        live  media)  is  used  as  a list of directories which not need be
        persistent: ie. their content does not need to survive reboots when
@@ -375,6 +431,7 @@ FILES
        mounting each listed directory with a tmpfs on the original path.
 
    /etc/live-snapshot.list
+   
        This  optional  file,  if  present   changes   the   behaviour   of
        live-snapshot: only files and directories listed there are included
        (integrally) in the snapshot. Beware, it is an experimental feature
@@ -409,32 +466,41 @@ OPTIONS
 Shared live-build options The following command line options are supported by all live-build programs.
 
    -h, --help
+   
        display help and exit.
 
    -u, --usage
+   
        show usage and exit.
 
    -v, --version
+   
        output version information and exit.
 
 Common live-build options The following command line options are supported by most live-build programs. See the man page of each program for a complete explanation of what each option does.
 
    --breakpoints
+   
        run with breakpoints.
 
    --conffile
+   
        use custom configuration file.
 
    --debug
+   
        show debug information.
 
    --force
+   
        force helper execution, even if stage file exists.
 
    --quiet
+   
        be quiet.
 
    --verbose
+   
        be verbose.
 
 LIVE-BUILD COMMANDS
@@ -748,11 +814,13 @@ CONFIGURATION
 Boot Parameters (scripts) live-config is only activated if 'boot=live' is used as a boot parameter. Additionally, live-config needs to be told which scripts to run through the 'live-config' parameter or which scripts to not run through the 'live-noconfig' parameter. If both 'live-config' and 'live-noconfig' are used, or, if either one is specified multiple times, always the later one takes precedence over the previous one(s).
 
    live-config | config
+   
        All scripts are run.  This  is  what  Debian  Live  images  use  by
        default.
 
    live-config=SCRIPT1,SCRIPT2,  ... SCRIPTn | config=SCRIPT1,SCRIPT2, ...
    SCRIPTn
+   
        Only the specified scripts are run. Note that  the  order  matters,
        e.g.  'live-config=sudo,user-setup'  would  not work since the user
        needs to be added before it can be configured for sudo. Look at the
@@ -760,80 +828,97 @@ Boot Parameters (scripts) live-config is only activated if 'boot=live' is used a
        number.
 
    live-noconfig | noconfig
+   
        No  script  is  run.  This  is  the  same  as  not  using  any   of
        'live-config' or 'live-noconfig'.
 
    live-noconfig=SCRIPT1,SCRIPT2,  ... SCRIPTn | noconfig=SCRIPT1,SCRIPT2,
    ... SCRIPTn
+   
        All scripts are run, except the specified ones.
 
 Boot Parameters (options) Some individual scripts can change their behaviour upon a boot parameter.
 
    live-config.hostname=HOSTNAME | hostname=HOSTNAME
+   
        Allows to set the hostname of the system. The default is 'debian'.
 
    live-config.username=USERNAME | username=USERNAME
+   
        Allows  to  set  the  username that gets created for autologin. The
        default is 'user'.
 
    live-config.user-fullname="USER   FULLNAME"    |    user-fullname="USER
    FULLNAME"
+   
        Allows  to  set  the  fullname  of  the users that gets created for
        autologin. The default is 'Debian Live user'.
 
    live-config.locales=LOCALE1,LOCALE2        ...        LOCALEn         |
    locales=LOCALE1,LOCALE2 ... LOCALEn
+   
        Allows  to  set  the  locale of the system, e.g. 'de_CH.UTF-8'. The
        default is 'en_US.UTF-8'.  In  case  the  selected  locale  is  not
        already  available  on the system, it is automatically generated on
        the fly.
 
    live-config.timezone=TIMEZONE | timezone=TIMEZONE
+   
        Allows to set the timezone of the system, e.g. 'Europe/Zurich'. The
        default is 'UTC'.
 
    live-config.utc=yes|no | utc=yes|no
+   
        Allows  to change if the system is assuming that the hardware clock
        is set to UTC or not. The default is 'yes'.
 
    live-config.keyboard-model=KEYBOARD_MODEL                             |
    keyboard-model=KEYBOARD_MODEL
+   
        Allows to change the keyboard model. There is no default value set.
 
    live-config.keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2      ...
    KEYBOARD_LAYOUTn  |  keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2
    ... KEYBOARD_LAYOUTn
+   
        Allows  to  change  the  keyboard  layouts.  If  more  than  one is
        specified, the tools of  the  desktop  environment  will  allow  to
        switch it under X11. There is no default value set.
 
    live-config.keyboard-variant=KEYBOARD_VARIANT                         |
    keyboard-variant=KEYBOARD_VARIANT
+   
        Allows to change the keyboard variant. There is  no  default  value
        set.
 
    live-config.keyboard-options=KEYBOARD_OPTIONS                         |
    keyboard-options=KEYBOARD_OPTIONS
+   
        Allows to change the keyboard options. There are no  default  value
        set.
 
    live-config.sysv-rc=SERVICE1,SERVICE2     ...    SERVICEn    |    sysv-
    rc=SERVICE1,SERVICE2 ... SERVICEn
+   
        Allows to disable sysv services through update-rc.d.
 
    live-config.x-session-manager=X_SESSION_MANAGER                       |
    x-session-manager=X_SESSION_MANAGER
+   
        Allows to set the x-session-manager through update-alternatives.
 
    live-config.xorg-driver=XORG_DRIVER | xorg-driver=XORG_DRIVER
+   
        Allows to set xorg driver instead of autodetecting it.
 
    live-config.xorg-resolution=XORG_RESOLUTION                           |
    xorg-resolution=XORG_RESOLUTION
+   
        Allows to set xorg resolution instead of autodetecting it.
 
    live-config.hooks=filesystem|medium|URL1|URL2|     ...     |URLn      |
    hooks=medium|filesystem|URL1|URL2| ... |URLn
+   
        Allows  to fetch and execute one or more arbitrary files. Note that
        the URLs must be fetchable by wget  (http,  ftp  or  file://),  the
        files are executed in /tmp of the running live system, and that the
@@ -842,12 +927,15 @@ Boot Parameters (options) Some individual scripts can change their behaviour upo
        installed. Some hooks for some common use-cases  are  available  at
        /usr/share/doc/live-config/examples/hooks/                      and
        <http://live.debian.net/other/hooks>.
+       
        If the file is placed on the live medium, it can  be  fetched  with
        file:///live/image/FILE,  or with file:///FILE if it is in the root
        filesystem of the live system itself.
+       
        All hooks in /lib/live/hooks/ in the root filesystem  of  the  live
        system   can   be   automatically   be  enabled  with  the  keyword
        'filesystem'.
+       
        All hooks in /live/hooks/ of the live medium can  be  automatically
        be enabled with the keyword 'medium'.
        If  several  mechanisms  are  combined,  then  filesystem hooks are
@@ -856,24 +944,29 @@ Boot Parameters (options) Some individual scripts can change their behaviour upo
 Boot Parameters (shortcuts) For some common use cases where it would require to combine several individual parameters, live-config provides shortcuts. This allows both to have full granularity over all the options, as well keep things simple.
 
    live-config.noroot | noroot
+   
        Disables  the  sudo  and  policykit,  the  user  cannot  gain  root
        privileges on the system.
 
    live-config.noautologin | noautologin
+   
        Disables  both  the  automatic  console  login  and  the  graphical
        autologin.
 
    live-config.nottyautologin | nottyautologin
+   
        Disables  the  automatic  login  on  the console, not affecting the
        graphical autologin.
 
    live-config.nox11autologin | nox11autologin
+   
        Disables  the  automatic  login  with  any  display  manager,   not
        affecting tty autologin.
 
 Boot Parameters (special options) For special use cases there are some special boot paramters.
 
    live-config.debug | debug
+   
        Enables debug output in live-config.
 
 Configuration Files live-config can be configured (but not activated) through configuration files. Everything but the shortcuts that can be configured with a boot parameter can be alternatively also be configured through one or more files. If configuration files are used, the 'boot=live' parameter is still required to activate live-config.
@@ -891,64 +984,80 @@ Configuration Files live-config can be configured (but not activated) through co
    resulting in a filename like 'debian-eeepc.conf').
 
    LIVE_CONFIGS=SCRIPT1,SCRIPT2, ... SCRIPTn
+   
        This variable equals the 'live-config=SCRIPT1,SCRIPT2, ... SCRIPTn'
        parameter.
 
    LIVE_NOCONFIGS=SCRIPT1,SCRIPT2, ... SCRIPTn
+   
        This  variable  equals  the   'live-noconfig=SCRIPT1,SCRIPT2,   ...
        SCRIPTn' parameter.
 
    LIVE_HOSTNAME=HOSTNAME
+   
        This variable equals the 'live-config.hostname=HOSTAME' parameter.
 
    LIVE_USERNAME=USERNAME
+   
        This variable equals the 'live-config.username=USERNAME' parameter.
 
    LIVE_USER_FULLNAME="USER FULLNAME"
+   
        This    variable    equals   the   'live-config.user-fullname="USER
        FULLNAME"' parameter.
 
    LIVE_LOCALES=LOCALE1,LOCALE2 ... LOCALEn
+   
        This variable equals the  'live-config.locales=LOCALE1,LOCALE2  ...
        LOCALEn' parameter.
 
    LIVE_TIMEZONE=TIMEZONE
+   
        This variable equals the 'live-config.timezone=TIMEZONE' parameter.
 
    LIVE_UTC=yes|no
+   
        This variable equals the 'live-config.utc=yes|no' parameter.
 
    LIVE_KEYBOARD_MODEL=KEYBOARD_MODEL
+   
        This                variable               equals               the
        'live-config.keyboard-model=KEYBOARD_MODEL' parameter.
 
    LIVE_KEYBOARD_LAYOUTS=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2             ...
    KEYBOARD_LAYOUTn
+   
        This                variable               equals               the
        'live-config.keyboard-layouts=KEYBOARD_LAYOUT1,KEYBOARD_LAYOUT2 ...
        KEYBOARD_LAYOUTn' parameter.
 
    LIVE_KEYBOARD_VARIANT=KEYBOARD_VARIANT
+   
        This                variable               equals               the
        'live-config.keyboard-variant=KEYBOARD_VARIANT' parameter.
 
    LIVE_KEYBOARD_OPTIONS=KEYBOARD_OPTIONS
+   
        This               variable               equals                the
        'live-config.keyboard-options=KEYBOARD_OPTIONS' parameter.
 
    LIVE_SYSV_RC=SERVICE1,SERVICE2 ... SERVICEn
+   
        This variable equals the 'live-config.sysv-rc=SERVICE1,SERVICE2 ...
        SERVICEn' parameter.
 
    LIVE_XORG_DRIVER=XORG_DRIVER
+   
        This  variable  equals  the   'live-config.xorg-driver=XORG_DRIVER'
        parameter.
 
    LIVE_XORG_RESOLUTION=XORG_RESOLUTION
+   
        This                variable               equals               the
        'live-config.xorg-resolution=XORG_RESOLUTION' parameter.
 
    LIVE_HOOKS=filesystem|medium|URL1|URL2| ... |URLn
+   
        This               variable               equals                the
        'live-config.hooks=filesystem|medium|URL1|URL2|      ...     |URLn'
        parameter.
@@ -976,111 +1085,149 @@ SCRIPTS
    /lib/live/config.
 
    hostname
+   
        configures /etc/hostname and /etc/hosts.
 
    user-setup
+   
        adds an live user account.
 
    sudo
+   
        grants sudo privileges to the live user.
 
    locales
+   
        configures locales.
 
    tzdata
+   
        configures /etc/timezone.
 
-   gdm configures autologin in gdm.
+   gdm 
+   
+       configures autologin in gdm.
 
    gdm3
+   
        configures autologin in gdm3 (squeeze and newer).
 
-   kdm configures autologin in kdm.
+   kdm 
+   
+       configures autologin in kdm.
 
    lxdm
+   
        configures autologin in lxdm.
 
    nodm
+   
        configures autologin in nodm.
 
    slim
+   
        configures autologin in slim.
 
    xinit
+   
        configures autologin with xinit.
 
    console-common,  console-setup (lenny), keyboard-configuration (squeeze
    and newer)
+   
        configures the keyboard.
 
    sysvinit
+   
        configures sysvinit.
 
    sysv-rc
+   
        configures sysv-rc by disabling listed services.
 
    login
+   
        disables lastlog.
 
    apport (ubuntu only)
+   
        disables apport.
 
    gnome-panel-data
+   
        disables lock button for the screen.
 
    gnome-power-manager
+   
        disables hibernation.
 
    gnome-screensaver
+   
        disables the screensaver locking the screen.
 
    initramfs-tools
+   
        makes update-initramfs to also update the  live  media  when  using
        persistency.
 
    kaboom
+   
        disables kde migration wizard (squeeze and newer).
 
    kde-services
+   
        disables some unwanted KDE services (squeeze and newer).
 
    kpersonalizer
+   
        disables kde configuration wizard (lenny).
 
    debian-installer-launcher
+   
        adds debian-installer-launcher on users desktop.
 
    module-init-tools
+   
        automatically load some modules on some architectures.
 
    policykit
+   
        grant user privilegies through policykit.
 
    sslcert
+   
        regenerating ssl snake-oil certificates.
 
    update-notifier
+   
        disables update-notifier.
 
    anacron
+   
        disables anacron.
 
    util-linux
+   
        disables util-linux' hwclock.
 
    login
+   
        disables lastlog.
 
    xserver-xorg
+   
        configures xserver-xorg.
 
    ureadahead (ubuntu only)
+   
        disables ureadahead.
 
    openssh-server
+   
        recreates openssh-server host keys.
 
    hooks
+   
        allows  to  run arbitrary commands from a script placed on the live
        media or an http/ftp server.
 
@@ -1103,30 +1250,43 @@ FILES
 Written by Daniel Baumann daniel@debian.org.
 
 ***
+
 Below is a copy from /usr/share/doc/live-boot/copyright in live-boot_2.0.15-1_all.deb package:
 
 Files: *
+
 Copyright:
+
  (C) 2007-2011 Daniel Baumann <daniel@debian.org>
+ 
  (C) 2005-2008 Canonical Ltd. <http://www.cannonical.com/>
+ 
  (C) 2008 Chris Lamb <chris@debian.org>
+ 
  (C) 2006-2007 Marco Amadori <marco.amadori@gmail.com>
+ 
  (C) 2008 Dell Inc. <http://www.dell.com/>
  
 License: GPL-3+
+
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
+ 
  .
+ 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  GNU General Public License for more details.
+ 
  .
+ 
  You should have received a copy of the GNU General Public License
  along with this program. If not, see <http://www.gnu.org/licenses/>.
  .
+ 
  On Debian systems, the complete text of the GNU General Public License
  can be found in /usr/share/common-licenses/GPL-3 file.
 
