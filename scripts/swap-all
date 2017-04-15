@@ -1,0 +1,5 @@
+#!/bin/sh
+# For frugal install and .swp swap files located in /live/image
+
+sudo swapon /live/image/*.swp
+free
