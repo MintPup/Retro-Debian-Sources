@@ -1,0 +1,64 @@
+#!/bin/sh
+# 20161028 saintless for Retro-Debian
+# GNU GPL v3 applies. No warranty of any kind.
+# Includes moded code from examples in linux forums and man pages like: 
+# http://stackoverflow.com/questions/226703/how-do-i-prompt-for-input-in-a-linux-shell-script
+# https://github.com/MintPup/DebianDog-Wheezy/tree/master/scripts
+# 20170415: Include $VER to change easy later and "Choose from" section now based on:
+# https://github.com/MintPup/Retro-Debian-Sources/blob/master/scripts/frugal-install-grub-legacy
+
+if [ "$(whoami)" != "root" ]; then
+echo "You have to run this script as Superuser!"
+exit
+fi
+
+VER=etch #easy to change with lenny, squeeze, wheezy later (without spaces to generate properly save file name).
+
+DRVSALL=$(blkid | sed '/cd\|sd\|sr\|hd\|mm/!d;s,^.*/,,;s," $,,;s,:.*", ,' | grep -E -v "swap|ntfs|jfs|crypt|loop|sr0|cdrom" | cut -d" " -f1)
+
+echo 
+echo "Make save file Retro-$VER "
+echo "Choose where to create live-rw-$VER save file. NTFS, JFS and ext4 filesystems"
+echo "are excluded, but Etch shows ext4 as ext2. Make sure it's real ext2, ext3."
+echo "You can not mount ext4 partition with Debian-Etch."
+
+echo 
+echo "Choose from:"
+echo "$DRVSALL"
+read -p "Type drive, like: hda1: " DRV
+if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+read -p "No drive $DRV, try again: " DRV
+	if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+read -p "No drive $DRV, last try before exit: " DRV
+   if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+echo No drive "$DRV", run the script again.
+exit
+   fi
+   fi
+fi
+
+echo "$DRV" chosen.
+
+read -p "Type the size in Mb: " SIZE
+echo "$SIZE"
+
+DEST=/media/"$DRV"/live-rw-"$VER"
+mkdir -p /media/"$DRV"
+mount /dev/"$DRV" /media/"$DRV"
+
+if [ -f "$DEST" ]; then
+echo File "$DEST" already exists. Rename it and run the script again.
+exit
+fi
+
+echo Creating "$SIZE" Mb "$DEST" save file. Please, wait...
+dd if=/dev/zero of="$DEST" bs=1M count="$SIZE"
+
+echo y | mkfs.ext3 "$DEST"
+echo
+echo "If you do not see errors all should be OK."
+echo
+echo "Add to your boot code:"
+echo persistent persistent-subtext="$VER"
+echo
+exit
