@@ -1,0 +1,22 @@
+#!/bin/sh
+
+mydeb="$1"
+
+if [ ! "$mydeb" ]; then
+echo "usage: xtract-deb package.deb to extract."
+echo "Make sure you have read-write permissions for the deb file"
+echo "and location or run the script again using sudo."
+exit
+fi
+
+if [ "${mydeb##*.}" != "deb" ]; then
+echo "This is not deb package. Exiting now."
+exit
+fi
+
+cd "$(dirname "$mydeb")"
+
+workdir="$(basename "$mydeb" .deb)"
+mkdir -p "$workdir"
+fakeroot dpkg-deb -x "$mydeb" "$workdir"
+fakeroot dpkg-deb -e "$mydeb" "$workdir"/DEBIAN
