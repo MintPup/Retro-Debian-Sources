@@ -1,0 +1,59 @@
+#!/bin/sh
+# 20161030 saintless for Retro-Debian
+# GNU GPL v3 applies. No warranty of any kind.
+# Includes moded code from examples in linux forums and man pages like: 
+# http://stackoverflow.com/questions/226703/how-do-i-prompt-for-input-in-a-linux-shell-script
+# https://github.com/MintPup/DebianDog-Wheezy/tree/master/scripts
+# 20170415: Prevent boot-drive remount instead not listing it, DRVSALL and "Choose from" section now based on:
+# https://github.com/MintPup/Retro-Debian-Sources/blob/master/scripts/frugal-install-grub-legacy
+
+if [ "$(whoami)" != "root" ]; then
+echo "You have to run this script as Superuser!"
+exit
+fi
+
+BOOTDRV=$(mount | sed '/\/live\/image /!d;s, .*$,,;s,^.*/,,')
+DRVSALL=$(blkid | sed '/cd\|sd\|sr\|hd\|mm/!d;s,^.*/,,;s," $,,;s,:.*", ,' | grep -E -v "swap|crypt|jfs|loop|sr0/cdrom" | cut -d" " -f1)
+NTFSDRV=$(blkid | sed '/cd\|sd\|sr\|hd\|mm/!d;s,^.*/,,;s," $,,;s,:.*", ,' | grep "ntfs" | cut -d" " -f1)
+
+echo
+echo "Mount-Unmount Drives CLI "
+echo Boot drive "$BOOTDRV" is already mounted on /live/image
+echo "Warning: Etch shows ext4 as ext2. You can't mount ext4."
+
+echo 
+echo "Choose from:"
+echo "$DRVSALL"
+read -p "Type drive, like: hda1: " DRV
+if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+read -p "No drive $DRV, try again: " DRV
+	if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+read -p "No drive $DRV, last try before exit: " DRV
+   if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+echo No drive "$DRV", run the script again.
+exit
+   fi
+   fi
+fi
+
+if [ "$BOOTDRV" = "$DRV" ]; then
+echo "$BOOTDRV" is already mounted on /live/image.
+echo It is not good idea to try unmount or remount "$BOOTDRV"
+echo "Exiting now".
+exit
+fi
+
+if grep -qs "$DRV" /proc/mounts; then
+MNTPT=$(grep -s "$DRV" /proc/mounts | cut -d" " -f2)
+echo /dev/"$DRV" is mounted on "$MNTPT". Unmounting now.
+umount "$MNTPT" && rmdir "$MNTPT"
+elif echo "$NTFSDRV" | grep -wo "$DRV"; then
+echo "$NTFSDRV" is ntfs. Using ntfs-3g.
+mkdir -p /media/"$DRV" && ntfs-3g /dev/"$DRV" /media/"$DRV" -o rw
+echo /dev/"$DRV" is mounted on /media/"$DRV"
+else
+mkdir -p /media/"$DRV" && mount /dev/"$DRV" /media/"$DRV"
+echo /dev/"$DRV" is mounted on /media/"$DRV"
+fi
+
+exit
