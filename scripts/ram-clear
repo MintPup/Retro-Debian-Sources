@@ -1,0 +1,12 @@
+#!/bin/sh
+# Source: http://linuxinsight.com/proc_sys_vm_drop_caches.html
+
+if [ "$(whoami)" != "root" ]; then
+echo "You have to run this script as Superuser!"
+exit
+fi
+	
+sync
+echo 3 > /proc/sys/vm/drop_caches
+
+exit 0
