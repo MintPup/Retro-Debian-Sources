@@ -13,7 +13,7 @@ exit
 fi
 
 BOOTDRV=$(mount | sed '/\/live\/image /!d;s, .*$,,;s,^.*/,,')
-DRVSALL=$(blkid | sed '/cd\|sd\|sr\|hd\|mm/!d;s,^.*/,,;s," $,,;s,:.*", ,' | grep -E -v "swap|crypt|jfs|loop|sr0/cdrom" | cut -d" " -f1)
+DRVSALL=$(blkid | sed '/cd\|sd\|sr\|hd\|mm/!d;s,^.*/,,;s," $,,;s,:.*", ,' | grep -E -v "swap|crypt|jfs|loop|sr0|cdrom" | cut -d" " -f1)
 NTFSDRV=$(blkid | sed '/cd\|sd\|sr\|hd\|mm/!d;s,^.*/,,;s," $,,;s,:.*", ,' | grep "ntfs" | cut -d" " -f1)
 
 echo
