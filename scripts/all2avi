@@ -1,0 +1,32 @@
+#!/bin/sh
+# saintless for Retro-Debian. Simple script to convert videos from directory.
+# GNU GPL v3 applies. No warranty of any kind.
+# Includes moded code from linux man pages.
+
+if [ -z "which mencoder" ];then
+echo "This script needs mencoder installed."
+exit
+fi
+
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+echo
+echo "Convert all same type videos from directory to .avi."
+echo "Choice for file extension, bitrate and video scale."
+echo "In terminal cd to the directory with videos and type:"
+echo "/path-to/all2avi"
+echo
+exit
+fi
+
+read -p "Type file extension to convert, like: mkv or flv: " EXT
+read -p "Type video bitrate in kb, like: 1000 or 1500: " BIT
+read -p "Type video scale, like: 640:480 or 640:360 : " SCALE
+
+echo
+echo Convert all ."$EXT", vbitrate="$BIT", scale="$SCALE".
+read -p "Is this correct? (y/n)?" choose
+case "$choose" in
+  y|Y ) (for FILE in *."$EXT" ; do mencoder "$FILE" -o "$(basename "$FILE" ."$EXT")-new.avi" -oac mp3lame -ovc lavc -lavcopts vbitrate="$BIT" -vf scale="$SCALE" || break; done);;  
+  * ) exit 0;;
+esac
+
