@@ -1,0 +1,48 @@
+#!/bin/sh
+# 20161025 saintless for Retro-Debian
+# GNU GPL v3 applies. No warranty of any kind.
+# Includes moded code from examples in linux forums and man pages like: 
+# http://stackoverflow.com/questions/226703/how-do-i-prompt-for-input-in-a-linux-shell-script
+# https://github.com/MintPup/DebianDog-Wheezy/tree/master/scripts
+# 20170416 added variable $VER and some bashism removed.
+
+if [ "$(whoami)" != "root" ]; then
+echo "You have to run this script as Superuser!"
+exit
+fi
+
+if  grep -q persistent /proc/cmdline ; then
+echo
+echo "Please, boot without persistent parameter and run the script again."
+echo "Sorry, this is the only way to make sure your save file is unmounted."
+echo
+exit
+fi
+
+VER=etch     #easy to change with lenny, squeeze, wheezy later (without spaces to add entry properly).
+
+SAVE="$1"
+
+if [ ! "$SAVE" ]; then
+echo "usage: resize-save /path-to-file"
+exit
+fi
+
+# SAVESIZE="$(df -h "$SAVE" | tr -s ' ' | cut -f 2 -d ' ')"
+
+echo Resize save file Retro-"$VER"
+# echo -e "At the moment "$SAVE" is: # doesn't work with etch df
+# $SAVESIZE"Mb
+echo "Make sure to type bigger new size in Mb."
+echo "Decreasing the size is not recommended."
+echo
+read -p "Type $SAVE new size in Mb:" SIZE
+echo New size will be "$SIZE"Mb
+
+echo y | fsck -y "$SAVE"
+echo y | resize2fs -f "$SAVE" "$SIZE"m
+echo y | fsck -y "$SAVE"
+echo
+echo "If you do not see errors all should be OK."
+echo
+exit
