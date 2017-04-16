@@ -1,0 +1,72 @@
+#!/bin/sh
+# 20161027 saintless for Retro-Debian
+# GNU GPL v3 applies. No warranty of any kind.
+# Includes moded code from examples in linux forums and man pages like: 
+# http://stackoverflow.com/questions/226703/how-do-i-prompt-for-input-in-a-linux-shell-script
+# https://github.com/MintPup/DebianDog-Wheezy/tree/master/scripts
+# 20170416: Add $VER to change easy later, DRVSALL and "Choose from" section now based on:
+# https://github.com/MintPup/Retro-Debian-Sources/blob/master/scripts/frugal-install-grub-legacy
+
+if [ "$(whoami)" != "root" ]; then
+echo "You have to run this script as Superuser!"
+exit
+fi
+
+VER=etch     #easy to change with lenny, squeeze, wheezy later (without spaces to add entry properly).
+SWPF="$VER".swp
+
+
+DRVSALL=$(blkid | sed '/cd\|sd\|sr\|hd\|mm/!d;s,^.*/,,;s," $,,;s,:.*", ,' | grep -E -v "swap|ntfs|jfs|crypt|loop|sr0|cdrom" | cut -d" " -f1)
+
+echo
+echo " Make swap file Retro-$VER "
+echo "Choose where to create $SWPF swap file. NTFS and JFS are excluded."
+echo "Debian-Etch shows ext4 as ext2. Make sure it's real ext2, ext3."
+echo "You can not mount ext4 partition with Debian-Etch."
+
+echo
+echo "Choose from:"
+echo "$DRVSALL"
+read -p "Type drive, like: hda1: " DRV
+if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+read -p "No drive $DRV, try again: " DRV
+	if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+read -p "No drive $DRV, last try before exit: " DRV
+   if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+echo No drive "$DRV", run the script again.
+exit
+   fi
+   fi
+fi
+
+read -p "Type the size in Mb: " SIZE
+echo "$SWPF" size is "$SIZE"Mb
+
+SWAPFILE=/media/"$DRV"/"$SWPF"
+mkdir -p /media/"$DRV"
+mount /dev/"$DRV" /media/"$DRV"
+
+if [ -f "$SWAPFILE" ]; then
+echo
+echo "$SWAPFILE" already exists. Mounting "$SWAPFILE"
+echo y | swapon "$SWAPFILE"
+echo
+free
+echo
+exit
+fi
+
+echo Creating "$SIZE"Mb "$SWAPFILE"
+dd if=/dev/zero of="$SWAPFILE" bs=1M count="$SIZE"
+
+echo y | mkswap "$SWAPFILE"
+chown root:root "$SWAPFILE" #Suggestion from anikin: 
+chmod 0600 "$SWAPFILE"      #http://murga-linux.com/puppy/viewtopic.php?p=838074&sid=627e4e951a6f4501af9d105b1bb8cf71#838074
+echo y | swapon "$SWAPFILE"
+echo
+echo
+echo "If you do not see errors $SWAPFILE should be in use. Check below:"
+echo
+free
+echo
+exit
