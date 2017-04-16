@@ -1,0 +1,4 @@
+#!/bin/sh
+
+#x-terminal-emulator -e sudo /scripts/mnt-image "$@"
+x-terminal-emulator -e sh -c "sudo /scripts/mnt-image "$@"; sh"
