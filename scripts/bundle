@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/sh
 #
 # Copyright (c) alphaOS
 # Written by simargl <archpup-at-gmail-dot-com>
@@ -15,154 +15,164 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# 20170416 saintless - adapted for Retro-Debian. Depends on menu package, some code changes like WHERETO=/live,
+# -ano option, message colors and some bashism removed. Warning - not suitable for use in AlphaOS anymore!
 
-. /etc/rc.d/functions
-. /mnt/live/lib/.config
+if [ "$(whoami)" != "root" ]; then
+echo "You have to run this script as Superuser!"
+exit
+fi
 
-VERSION="0.5.0"
+if ! which update-menus; then
+echo "update-menus command is missing."
+echo "install menu package first:"
+echo "sudo apt-get install menu"
+exit
+fi
 
-check_bundle_defined()
-{
+if [ "$1" = "" ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+echo "This script will load, unload squashfs module:"
+echo " Loading:   bundle -a /path-to-module"
+echo " Unloading: bundle -d /path-to-module"
+exit
+fi
+
+WHERETO=/live
+NUM=$(blkid -o full -c /dev/null | grep "squashfs" | grep -c "/live/\|(in use)")
+
+ext=${2##*.}
+echo "$ext"
+
+POSITION="$((${NUM} + 1))"
+
+check_bundle_defined () {
   if [ ! "$BUNDLE" ]; then
-    echo -e $BRed"==> "$BWhite"Please define bundle name."$Color_Off
-    exit 1
-  else
-    EXT="${BUNDLE##*.}"
-    if [ "$EXT" != "$BEXT" ]; then
-      echo -e $BRed"==> "$BWhite"Wrong file name '"$BUNDLE"' is not a bundle."$Color_Off
-      exit 1
-    fi
+    echo " Please define bundle name."
+    exit
   fi
 }
 
-get_bundle_load_positon()
-{
-  if [ ! $BUNDLE_POSITION ]; then
+get_bundle_load_positon () {
+  if [ ! "$BUNDLE_POSITION" ]; then
     POSITION="1"
   else
-    POSITION=$(echo $BUNDLE_POSITION | sed 's|^--||g')
+    POSITION=$(echo "$BUNDLE_POSITION" | sed 's|^--||g')
   fi
 }
 
-check_if_exists()
-{
+check_if_onaufs () {
+ APPDIR=$(dirname "$BUNDLE")
+ ALINE=$(df -m "$APPDIR"|tail -n1| tr -s ' ')
+ MYPLACE=$(echo "$ALINE"| cut -d' ' -f1)
+ APPDEV=$(echo "$MYPLACE"| grep '^/dev/')
+ 
+ if [ -z "$APPDEV" ]; then
+echo "$BUNDLE" must be on an actual drive storage like /media/sda1 etc.
+exit
+fi
+}
+
+check_if_exists () {
   if [ ! -f "$BUNDLE" ]; then
-    echo -e $BRed"==> "$BWhite"Bundle '"$BUNDLE"' does not exist"$Color_Off
-    exit 1
+    echo Module "$BUNDLE" does not exist.
+    exit
   fi
 }
 
-check_if_deactivated()
-{
-  if [ -d /mnt/live/memory/bundles/"$BUNDLE" ]; then
-    echo -e $BRed"==> "$BWhite"Bundle '"$BUNDLE"' is already activated"$Color_Off
-    exit 1
+check_if_deactivated () {
+  if [ -d "$WHERETO/$BUNDLE" ]; then
+    echo "$BUNDLE" is already activated.
+    exit
   fi
 }
 
-check_if_activated()
-{
-  if [ ! -d /mnt/live/memory/bundles/"$BUNDLE" ]; then
-    echo -e $BRed"==> "$BWhite"Bundle '"$BUNDLE"' is not currently activated"$Color_Off
-    exit 1
+check_if_activated () {
+  if [ ! -d "$WHERETO/$BUNDLE" ]; then
+    echo "$BUNDLE" is not yet activated.
+    exit
   fi
 }
 
-check_if_system_bundle()
-{
-  for bundles in alpha* extra*; do
-    if [[ "$BUNDLE" =~ $bundles ]]; then
-      echo -e $BRed"==> "$BWhite"System bundle '"$BUNDLE"' cannot be deactivated!"$Color_Off
-      exit 1
-    fi
-  done
+post_actions_check_if_needed () {
+  MODULES=$(ls "$WHERETO"/"$BUNDLE"/lib/modules 2>/dev/null)
+  ICONS=$(ls "$WHERETO"/"$BUNDLE"/usr/share/icons/hicolor 2>/dev/null)
+  DESKTOP=$(ls "$WHERETO"/"$BUNDLE"/usr/share/applications 2>/dev/null)
+  GSETTINGS=$(ls "$WHERETO"/"$BUNDLE"/usr/share/glib-2.0/schemas 2>/dev/null)
+  FONTS=$(ls "$WHERETO"/"$BUNDLE"/usr/share/fonts/TTF 2>/dev/null)
 }
 
-post_actions_check_if_needed()
-{
-  MODULES=$(ls /mnt/live/memory/bundles/"$BUNDLE"/lib/modules 2>/dev/null)
-  ICONS=$(ls /mnt/live/memory/bundles/"$BUNDLE"/usr/share/icons/hicolor 2>/dev/null)
-  DESKTOP=$(ls /mnt/live/memory/bundles/"$BUNDLE"/usr/share/applications 2>/dev/null)
-  GSETTINGS=$(ls /mnt/live/memory/bundles/"$BUNDLE"/usr/share/glib-2.0/schemas 2>/dev/null)
-  FONTS=$(ls /mnt/live/memory/bundles/"$BUNDLE"/usr/share/fonts/TTF 2>/dev/null)
-}
-
-post_actions_run_list()
-{
-  if [ "$MODULES" ]; then
-    echo -e $BBlue"  ->"$Color_Off" updating loadable kernel modules list"
+post_actions_run_list () {
+  if [ "$MODULES" ]; then 
+    echo "Updating kernel modules."
     depmod -a
   fi
   if [ "$ICONS" ]; then 
-    echo -e $BBlue"  ->"$Color_Off" rebuilding the gtk+ icon cache"
-    gtk-update-icon-cache /usr/share/icons/hicolor &>/dev/null 2>&1
+    echo "Rebuilding the icon cache."
+    gtk-update-icon-cache --force /usr/share/icons/hicolor 2>/dev/null
   fi
   if [ "$DESKTOP" ]; then
-    echo -e $BBlue"  ->"$Color_Off" updating mimeinfo cache"
-    update-desktop-database &>/dev/null 2>&1
-    rm -r $HOME/.cache &>/dev/null 2>&1
+    echo "Updating mime cache."
+    update-desktop-database 2>/dev/null
+    rm -r "$HOME"/.cache 2>/dev/null
   fi
   if [ "$GSETTINGS" ]; then
-    echo -e $BBlue"  ->"$Color_Off" gsettings xml schema files"
-    glib-compile-schemas /usr/share/glib-2.0/schemas &>/dev/null 2>&1
+    echo "Updating gsettings xml schema files"
+    glib-compile-schemas /usr/share/glib-2.0/schemas 2>/dev/null
   fi
   if [ "$FONTS" ]; then
-    echo -e $BBlue"  ->"$Color_Off" updating font cache"
+    echo "Updating font cache."
     fc-cache -f -s > /dev/null
     mkfontscale /usr/share/fonts/TTF
     mkfontdir /usr/share/fonts/TTF
   fi
 }
 
-bundle_show_help()
-{
-  echo "$0 $VERSION
-
-Usage: $0 [options]
-
-Options:
-  -a     Activate bundle <file name>
-  -d     Deactivate bundle <file name>"
-}
-
-bundle_activate()
-{
+bundle_activate () {
+  check_if_onaufs
   check_bundle_defined
+  echo
+  if [ "$ext" = "sfs" ] || [ "$ext" = "pfs" ] || [ "$ext" = "xzm" ] || [ "$ext" = "sb" ]; then
+  read -p "Not .squashfs extension. Maybe Debian incompatible module. Continue? (y/n)?" choose
+case "$choose" in
+  y|Y ) echo "Continue...";;
+* ) exit 0;;
+esac
+fi
   check_if_exists
   check_if_deactivated
-  get_bundle_load_positon
-  mkdir /mnt/live/memory/bundles/"$BUNDLE"
-  mount -o loop "$BUNDLE" /mnt/live/memory/bundles/"$BUNDLE"
-  mount -n -o remount,add:$POSITION:/mnt/live/memory/bundles/"$BUNDLE"=rr aufs /
+  # get_bundle_load_positon
+  mkdir "$WHERETO"/"$BUNDLE"
+  mount -o loop "$BUNDLE" "$WHERETO"/"$BUNDLE"
+  mount -n -o remount,add:"$POSITION":$WHERETO/"$BUNDLE"=rr+wh aufs /
   if [ $? -eq 0 ]; then
-    echo -e $BGreen"==> "$BWhite"Bundle '"$BUNDLE"' activated"$Color_Off
+    echo Module "$BUNDLE" activated.
     post_actions_check_if_needed
     post_actions_run_list
-    exit 0
+    update-menus
+    exit
   else
-    echo -e $BRed"==> "$BWhite"Bundle '"$BUNDLE"' activate failed"$Color_Off
-    umount /mnt/live/memory/bundles/"$BUNDLE"
-    rmdir /mnt/live/memory/bundles/"$BUNDLE"
-    exit 1
+    echo Module "$BUNDLE" activate failed.
+    umount "$WHERETO"/"$BUNDLE"
+    rmdir "$WHERETO"/"$BUNDLE"
+    exit
   fi
 }
 
-bundle_deactivate()
-{
+bundle_deactivate () {
   check_bundle_defined
   check_if_activated
-  check_if_system_bundle
   post_actions_check_if_needed
-  mount -n -o remount,del:/mnt/live/memory/bundles/"$BUNDLE" aufs / 2>/dev/null
-  umount -d /mnt/live/memory/bundles/"$BUNDLE" 2>/dev/null
-  rmdir /mnt/live/memory/bundles/"$BUNDLE" 2>/dev/null
+  mount -t squashfs -n -o remount,del:"$WHERETO"/"$BUNDLE" aufs /
+  umount "$WHERETO"/"$BUNDLE"
+  rmdir "$WHERETO"/"$BUNDLE"
   if [ $? -eq 0 ]; then
-    echo -e $BGreen"==> "$BWhite"Bundle '"$BUNDLE"' deactivated"$Color_Off
+    echo Module "$BUNDLE" deactivated.
     post_actions_run_list
+    update-menus
     exit 0
-  else
-    echo -e $BRed"==> "$BWhite"Bundle '"$BUNDLE"' deactivate failed"$Color_Off
-    exit 1
+else
+echo "$BUNDLE" deactivate failed. Try to activate and deactivate again or reboot.
   fi
 }
 
@@ -170,14 +180,34 @@ case "$1" in
   
   -a)
     BUNDLE="$2"
-    BUNDLE_POSITION="$3"
-    bundle_activate ;;
-  
+	case $BUNDLE in
+
+	*.xzm|*.squashfs|*.sfs|*.sb|*.pfs)
+    cd "$(dirname "$BUNDLE")"
+    BUNDLE=$(basename "$2")
+    POSITION=1
+    bundle_activate
+	;;
+	*)
+	echo "Invalid module file."
+	exit
+	;;
+	esac
+;;
   -d)
     BUNDLE="$2"
-    bundle_deactivate ;;
+	case $BUNDLE in
 
-   *)
-    bundle_show_help ;;
-
+	*.xzm|*.squashfs|*.sfs|*.sb|*.pfs)
+    cd "$(dirname "$BUNDLE")"
+    BUNDLE=$(basename "$2")
+    cd "$(dirname "$BUNDLE")"
+    bundle_deactivate 
+ 	;;
+	*)
+	echo "Invalid module file."
+	exit
+	;;
+	esac
+;;
 esac
