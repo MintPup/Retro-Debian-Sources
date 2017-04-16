@@ -1,0 +1,40 @@
+#!/bin/sh
+# 20161029 saintless for Retro-Debian
+# GNU GPL v3 applies. No warranty of any kind.
+# Includes moded code from examples in linux forums and man pages like: 
+# http://stackoverflow.com/questions/226703/how-do-i-prompt-for-input-in-a-linux-shell-script
+# https://github.com/MintPup/DebianDog-Wheezy/tree/master/scripts
+
+if [ "$(whoami)" != "root" ]; then
+echo "You have to run this script as Superuser!"
+exit
+fi
+
+IMG="$1"
+
+if [ ! "$IMG" ]; then
+echo "usage: mnt-image /path-to-file"
+exit
+fi
+
+MP=/media/$(basename "$IMG").dir
+mkdir -p "$MP"
+
+if ! mount | grep "$MP"; then
+ mount -o loop "$IMG" "$MP"
+ echo mounted on "$MP"
+
+
+# echo
+# read -p "Open $MP in ROX now? (y/n)?" choose       #If I need prompt to open in Rox later.
+# case "$choose" in
+#  y|Y ) rox "$MP";;
+#  * ) exit;;
+#esac
+
+else
+ umount "$MP"
+ rmdir "$MP"
+ echo "$MP" unmounted.
+fi
+
