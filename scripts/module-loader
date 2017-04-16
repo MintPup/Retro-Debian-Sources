@@ -1,0 +1,4 @@
+#!/bin/sh
+set -x
+x-terminal-emulator -e bash -c "sudo /scripts/bundle -a "$@"; bash"
+x-terminal-emulator -e bash -c "sudo /scripts/bundle -d "$@"; bash"
