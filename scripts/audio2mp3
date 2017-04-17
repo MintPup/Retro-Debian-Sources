@@ -1,0 +1,42 @@
+#!/bin/sh
+# saintless for Retro-Debian. Simple script to convert audio files to .mp3 with Mencoder.
+# GNU GPL v3 applies. No warranty of any kind.
+# Based on: https://github.com/MintPup/Retro-Debian-Sources/blob/master/scripts/video2avi
+# In this script using mencoder to convert audio needs video file named test.video together with the audio files.
+# Important: test.video can be avi, mpg, mp4, flv... and must play more than any audio file you like to convert.
+# Mencoder workaround source: http://uselessdiaries.blogspot.bg/2008/04/converting-audio-files-to-mp3-using.html
+
+if [ -z "which mencoder" ];then
+echo "This script needs mencoder installed."
+exit
+fi
+
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+echo
+echo "Convert audio files from directory to .mp3"
+echo "Needs test.video (avi, mp4...) in the audio directory."
+echo "test.video must play more than any audio file."
+echo "Choice for file extension and bitrate only."
+echo "In terminal cd to the directory and type:"
+echo "/path-to/audio2mp3"
+echo
+exit
+fi
+
+if [ ! -f "test.video" ];then
+echo
+echo "test.video missing. Read the help menu:"
+echo "/path-to/audio2mp3 -h"
+echo
+exit
+fi
+
+read -p "Type file extension to convert, like: m4a or ogg: " EXT
+read -p "Type bitrate in kb, like: 128 or 256 or 320: " BIT
+echo
+echo Convert all ."$EXT" with bitrate "$BIT"kb.
+read -p "Is this correct? (y/n)?" choose
+case "$choose" in
+  y|Y ) (for FILE in *."$EXT" ; do mencoder -audiofile "$FILE" test.video -o "$(basename "$FILE" ."$EXT")-new.mp3" -ovc frameno -oac mp3lame -lameopts cbr:br="$BIT" -of rawaudio || break; done);;
+  * ) exit 0;;
+esac
