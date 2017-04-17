@@ -1,0 +1,37 @@
+#!/bin/sh
+# saintless for Retro-Debian. Simple script to convert one video to .avi
+# GNU GPL v3 applies. No warranty of any kind.
+# Based on: https://github.com/MintPup/Retro-Debian-Sources/blob/master/scripts/all2avi
+
+if [ -z "which mencoder" ];then
+echo "This script needs mencoder installed."
+exit
+fi
+
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+echo
+echo "Convert one video (including .avi) to .avi"
+echo "Choice for file extension, bitrate and video scale."
+echo "usage /path-to/all2avi /path-to-video-file"
+echo
+exit
+fi
+
+FILE="$1"
+
+mencoder "$FILE" -o info.avi             #Only to show video properties - does not create info.avi
+echo
+echo "Check above bitrate and video scale and change them:"
+echo
+
+read -p "Type video bitrate in kb, like: 1000 or 1500: " BIT
+read -p "Type video scale, like: 640:480 or 640:360 : " SCALE
+
+echo
+echo Convert "$FILE" to avi - vbitrate="$BIT"kb, scale="$SCALE"
+read -p "Is this correct? (y/n)?" choose
+case "$choose" in
+  y|Y ) mencoder "$FILE" -o "$(basename "$FILE".avi)" -oac mp3lame -ovc lavc -lavcopts vbitrate="$BIT" -vf scale="$SCALE";;
+  * ) exit 0;;
+esac
+
