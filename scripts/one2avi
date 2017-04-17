@@ -2,6 +2,7 @@
 # saintless for Retro-Debian. Simple script to convert one video to .avi
 # GNU GPL v3 applies. No warranty of any kind.
 # Based on: https://github.com/MintPup/Retro-Debian-Sources/blob/master/scripts/all2avi
+# 20170417 sound increase option. Useful sometimes. Recommended (0 as source).
 
 if [ -z "which mencoder" ];then
 echo "This script needs mencoder installed."
@@ -11,7 +12,7 @@ fi
 if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
 echo
 echo "Convert one video (including .avi) to .avi"
-echo "Choice to change bitrate and video scale."
+echo "Choose video bitrate, video scale, sound volume."
 echo "usage /path-to/all2avi /path-to-video-file"
 echo
 exit
@@ -26,12 +27,12 @@ echo
 
 read -p "Type video bitrate in kb, like: 1000 or 1500: " BIT
 read -p "Type video scale, like: 640:480 or 640:360 : " SCALE
+read -p "Increase sound (0 as source recommended): 0 to 10 : " SND
 
 echo
-echo Convert "$FILE" to avi - vbitrate="$BIT"kb, scale="$SCALE"
+echo Convert "$FILE" to avi - vbitrate="$BIT"kb, scale="$SCALE", sound increase="$SND"0 percent
 read -p "Is this correct? (y/n)?" choose
 case "$choose" in
-  y|Y ) mencoder "$FILE" -o "$(basename "$FILE".avi)" -oac mp3lame -ovc lavc -lavcopts vbitrate="$BIT" -vf scale="$SCALE";;
+  y|Y ) mencoder "$FILE" -o "$(basename "$FILE".avi)" -oac mp3lame -lameopts cbr:br=256:vol="$SND" -mc 0 -ovc lavc -lavcopts vbitrate="$BIT" -vf scale="$SCALE";;
   * ) exit 0;;
 esac
-
