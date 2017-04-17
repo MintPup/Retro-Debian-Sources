@@ -1,0 +1,30 @@
+#!/bin/sh
+# saintless for Retro-Debian. Simple script to extract audio from video files to .mp3
+# GNU GPL v3 applies. No warranty of any kind.
+# Based on: https://github.com/MintPup/Retro-Debian-Sources/blob/master/scripts/all2avi
+
+if [ -z "which mencoder" ];then
+echo "This script needs mencoder installed."
+exit
+fi
+
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+echo
+echo "Extract audio as .mp3 from same type videos in directory."
+echo "Choice for file extension and bitrate only."
+echo "In terminal cd to the directory and type:"
+echo "/path-to/video2mp3"
+echo
+exit
+fi
+
+read -p "Type file extension to convert, like: flv or avi: " EXT
+read -p "Type bitrate in kb, like: 128 or 256 or 320: " BIT
+echo
+echo Convert all ."$EXT" with bitrate "$BIT"kb.
+read -p "Is this correct? (y/n)?" choose
+case "$choose" in
+  y|Y ) (for FILE in *."$EXT" ; do mencoder "$FILE" -o "$(basename "$FILE" ."$EXT")-new.mp3" -ovc frameno -oac mp3lame -lameopts cbr:br="$BIT" -of rawaudio || break; done);;
+  * ) exit 0;;
+esac
+
