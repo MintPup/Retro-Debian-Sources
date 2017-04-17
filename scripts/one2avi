@@ -11,7 +11,7 @@ fi
 if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
 echo
 echo "Convert one video (including .avi) to .avi"
-echo "Choice for file extension, bitrate and video scale."
+echo "Choice to change bitrate and video scale."
 echo "usage /path-to/all2avi /path-to-video-file"
 echo
 exit
