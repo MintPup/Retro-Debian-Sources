@@ -1,0 +1,214 @@
+#!/bin/sh
+# 20161025 saintless for Retro-Debian
+# GNU GPL v3 applies. No warranty of any kind.
+# Includes moded code from examples in linux forums and man pages:
+# http://foxyroxylinux.com
+# https://github.com/MintPup/DebianDog-Wheezy/tree/master/scripts
+# http://stackoverflow.com/questions/226703/how-do-i-prompt-for-input-in-a-linux-shell-script
+# 20170418 Remove some bashism and code synchronization with:
+# https://github.com/MintPup/Retro-Debian-Sources/blob/master/scripts/remaster
+
+if [ -z "which rsync" ]; then
+echo "Install rsync and run the script again."
+exit
+fi
+
+if [ "$(whoami)" != "root" ]; then
+echo "You have to run this script as Superuser!"
+exit
+fi
+
+VER=etch     #easy to change with lenny, squeeze, wheezy later (without spaces to add entry properly).
+SQFS=09-"$VER"-changes.squashfs
+WRKD=cow-dir-"$VER"
+
+echo "Removing configuration files left from uninstalled packages."
+dpkg --purge "$(dpkg --get-selections | grep deinstall | cut -f1)" 2> /dev/null
+echo "Removing downloaded deb files from /var/cache/apt/archives"
+apt-get clean
+echo
+
+echo "Module from Changes Retro-$VER "
+echo "Create $SQFS from session changes.  "
+echo
+
+DRVSALL=$(blkid | sed '/cd\|sd\|sr\|hd\|mm/!d;s,^.*/,,;s," $,,;s,:.*", ,' | grep -E -v "swap|ntfs|vfat|crypt|jfs|loop|sr0|cdrom" | cut -d" " -f1) 
+
+echo "Choose where to create the working directory and the new module."
+echo "Must be linux filesystem, NTFS, JFS and FAT filesystems are excluded."
+echo "Warning: Debian-Etch is too old and shows ext4 partitions as ext2."
+echo "Make sure it is real ext2, ext3 before using the script in Etch."
+echo "Any actvated extra squashfs modules will not be included!"
+echo "Check for enough free space first by running df -h command!"
+echo "This script will not do the check for you!"
+echo
+
+echo "Choose from:"
+echo "$DRVSALL" /tmp
+read -p "Type your choice, like: hda1 or /tmp: " DRV
+if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+read -p "No drive $DRV, try again: " DRV
+	if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+read -p "No drive $DRV, last try before exit: " DRV
+   if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+echo No drive "$DRV", run the script again.
+exit
+   fi
+   fi
+fi
+
+echo "$DRV" is your choice.
+
+ if [ "$DRV" = "/tmp" ]; then
+DEST=/tmp/"$WRKD"
+SFS=/tmp/"$SQFS"
+ else
+DEST=/media/"$DRV"/"$WRKD"
+SFS=/media/"$DRV"/"$SQFS"
+mkdir -p /media/"$DRV"
+mount /dev/"$DRV" /media/"$DRV"
+ fi
+
+ if [ -d "$DEST" ]; then
+read -p "$DEST exists, remove it and continue (y/n)?" choose
+case "$choose" in
+  y|Y ) rm -fr "$DEST";;
+  * ) exit;;
+esac
+ fi
+
+ if [ -f "$SFS" ]; then
+read -p "$SFS exists, remove it and continue (y/n)?" choose
+case "$choose" in
+  y|Y ) rm -fr "$SFS";;
+  * ) exit;;
+esac
+ fi
+
+mkdir "$DEST"
+echo Copying files to "$DEST"... Please, wait...
+cp -ap /live/cow/* "$DEST"/
+echo
+
+cd "$DEST"
+
+echo "Cleaning..."
+rm -rf "$DEST"/etc/fltk
+rm -rf "$DEST"/etc/network
+rm -f "$DEST"/etc/blkid.tab
+rm -f "$DEST"/etc/blkid.tab.old
+rm -f "$DEST"/etc/fstab
+rm -f "$DEST"/etc/mtab
+rm -f "$DEST"/var/cache/debconf/templates.dat-old
+rm -rf "$DEST"/var/log
+rm -rf "$DEST"/var/lib/apt/lists
+rm -rf "$DEST"/var/lib/sudo
+rm -f "$DEST"/var/lib/urandom/random-seed
+rm -rf "$DEST"/var/lib/xkb
+rm -f "$DEST"/var/lib/dpkg/available-old
+rm -f "$DEST"/var/lib/dpkg/status-old
+rm -f "$DEST"/var/lib/lock
+rm -rf "$DEST""$HOME"/.fltk
+rm -f "$DEST""$HOME"/.local/share/recently-used.xbel
+rm -rf "$DEST""$HOME"/.local/share/Trash
+
+rm -rf dev tmp mnt media run lost+found live var/lib/dpkg/updates var/lib/dpkg/tmp var/lib/dpkg/lock var/run var/cache var/lock lib/modules/2.6.18-6-486/kernel live lib/live/mount cdrom proc sys initrd lost+found persistence.conf var/lib/apt/lists var/cache/apt var/log
+
+rm -rf "$DEST"/etc/rc.d
+rm -f "$DEST"/etc/DISTRO_SPECS
+rm -rf "$DEST"/initrd
+rm -rf "$DEST"/lib/consolefonts
+rm -rf "$DEST"/lib/keymaps
+
+rm -f "$DEST"/var/lib/alsa/asound.state
+rm -f "$DEST""$HOME"/.bash_history
+rm -f "$DEST""$HOME"/.xsession-errors
+rm -rf "$DEST""$HOME"/.cache
+rm -rf "$DEST""$HOME"/.thumbnails
+rm -f "$DEST"/etc/blkid-cache*
+#rm -f "$DEST"/etc/resolv.conf #removing breaks the official resolvconf package functions.
+rm -rf "$DEST"/etc/udev/rules.d/70-persistent*
+rm -f "$DEST"/var/lib/dhcp/dhclient.eth0.leases
+rm -f "$DEST"/var/lib/dhcpcd/*.lease
+rm -fr "$DEST"/var/lib/aptitude/*
+rm -fr "$DEST"/var/lib/dpkg/updates/tmp.i
+rm -fr "$DEST"/var/cache/debconf/*.dat-old
+rm -f "$DEST"/etc/blkid.tab
+rm -f "$DEST"/etc/blkid.tab.old
+rm -rf "$DEST"/var/cache/apt-show-versions/*
+rm -fr "$DEST"/var/backups/*
+rm -f "$DEST"/var/log/* 2> /dev/null
+rm -fr "$DEST"/scripts
+
+#Etch section start:
+rm -rf "$DEST"/etc/udev/rules.d/z25_persistent*
+rm -fr "$DEST"/var/lib/dhcp
+rm -fr "$DEST"/var/lib/dhcpcd
+rm -fr "$DEST"/var/lib/urandom
+rm -fr "$DEST"/var/run/*
+rm -fr "$DEST"/var/tmp/*
+rm -fr "$DEST"/var/lib/dhcp3
+rm -f "$DEST""$HOME"/.serverauth*
+echo ""
+
+mv "$DEST"/var/lib/dpkg/info "$DEST"/var/lib/dpkg/infonew
+mv "$DEST"/var/lib/dpkg/status "$DEST"/var/lib/dpkg/statusnew
+mv "$DEST"/var/lib/dpkg/available "$DEST"/var/lib/dpkg/availablenew
+
+#The zerosize function is from Jbv's  FoxyRoxyLinux remastering script: http://foxyroxylinux.com
+zerosize() {
+  find $* | while read file; do
+    echo "."
+    rm -f "$file"
+    touch "$file"
+  done
+}
+
+echo "Zerosizing man, doc, info..."
+    zerosize usr/share/doc -type f -size +1c
+    zerosize usr/share/doc -type l
+
+    zerosize usr/share/man -type f -size +1c
+    zerosize usr/share/man -type l
+
+
+    zerosize usr/share/info -type f -size +1c
+    zerosize usr/share/info -type l
+
+    zerosize usr/share/gnome/help -type f -size +1c
+    zerosize usr/share/gnome/help -type l
+
+    zerosize usr/share/gtk-doc -type f -size +1c
+    zerosize usr/share/gtk-doc -type l
+
+    chown -R man:root usr/share/man
+    
+  
+cd "$HOME"
+
+#Uncomment next 2 lines for Wheezy, Jessie:
+#rm -fr "$DEST"/usr/share/doc/elinks
+#ln -sf /usr/share/doc/elinks-data "$DEST"/usr/share/doc/elinks #workaround for reinstalling elinks in wheezy and jessie.
+
+read -p "Remove localization files (/usr/share/locale/*) (y/n)?" choose
+case "$choose" in
+  y|Y ) rm -fr "$DEST"/usr/share/locale/* ;;
+  * ) echo "Localization files included.";;
+esac
+
+echo
+echo "Now you can clean manually $DEST if you like."
+echo "After that type y or Y and press Enter to continue."
+echo "Other key will skip mksquashfs command."
+read -p "Continue making squashfs module (y/n)?" choose
+case "$choose" in
+  y|Y ) mksquashfs "$DEST" "$SFS";;
+  * ) echo "Continue...";;
+esac
+
+echo
+read -p "All done. Remove $DEST (y/n)?" choose
+case "$choose" in
+  y|Y ) rm -rf "$DEST";;
+  * ) exit;;
+esac
