@@ -1,5 +1,10 @@
 #!/bin/sh
 # For frugal install and .swp swap files located in /live/image
 
+if [ "$(whoami)" != "root" ]; then
+echo "You have to run this script as Superuser!"
+exit
+fi
+
 sudo swapon /live/image/*.swp
 free
