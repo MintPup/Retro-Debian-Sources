@@ -16,5 +16,7 @@ esac
 read -p "Type user name: " newuser
 adduser "$newuser" --gecos GECOS
 
-usermod -a -G sudo,audio,dip,video,plugdev,netdev,cdrom,floppy "$newuser" #Etch, Lenny.
+usermod -a -G audio,dip,video,plugdev,netdev,cdrom,floppy "$newuser" #Etch, Lenny - adding to sudo group skips password prompt.
 #usermod -a -G sudo,fuse,audio,dip,video,plugdev,scanner,lpadmin,netdev,cdrom,floppy,bluetooth "$newuser" #Squeeze, Wheezy, Jessie, Stretch, SID
+
+echo "$newuser	ALL=PASSWD:ALL" >> /etc/sudoers #Etch and Lenny to ask for password each time. Needs also this in /etc/sudoers: Defaults	env_reset,timestamp_timeout=0 
