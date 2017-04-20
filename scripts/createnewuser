@@ -18,5 +18,3 @@ adduser "$newuser" --gecos GECOS
 
 usermod -a -G sudo,audio,dip,video,plugdev,netdev,cdrom,floppy "$newuser" #Etch, Lenny.
 #usermod -a -G sudo,fuse,audio,dip,video,plugdev,scanner,lpadmin,netdev,cdrom,floppy,bluetooth "$newuser" #Squeeze, Wheezy, Jessie, Stretch, SID
-
-echo "$newuser ALL=(ALL) ALL" >> /etc/sudoers
