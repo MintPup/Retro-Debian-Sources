@@ -1,0 +1,88 @@
+#!/bin/sh
+# 20170422 saintless for Retro-Debian
+# GNU GPL v3 applies. No warranty of any kind.
+# Includes moded code from examples in linux forums and man pages like:
+# https://linux.die.net/man/7/samba
+# https://linux.die.net/man/1/smbclient
+# https://www.howtoforge.com/debian_etch_samba_standalone_server_with_tdbsam_backend
+# https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/3/html/System_Administration_Guide/s1-samba-connect-share.html
+
+if [ "$(whoami)" != "root" ]; then
+echo "You have to run this script as Superuser!"
+exit
+fi
+
+VER=etch
+SHR=allusers
+
+echo
+echo "Retro-$VER simple samba file sharing setup."
+echo
+
+if ! which smbpasswd ; then
+echo "Install samba and run the script again."
+exit
+fi
+
+echo
+read -p "Choose server name:" SERV
+SRV="$SERV"-debian
+
+echo
+read -p "Choose workgroup:" WRKG
+WRK="$WRKG"
+
+echo
+read -p "Choose share directory (full path):" SDIR
+SHRDIR="$SDIR"
+
+mkdir -p "$SHRDIR"
+chown -R root:users "$SHRDIR"
+chmod -R ug+rwx,o+rx-w "$SHRDIR"
+
+mv /etc/samba/smb.conf /etc/samba/smb.conf.old
+
+echo " [global]
+netbios name = $SRV
+workgroup = $WRK
+security = user
+domain master = no
+domain logons = no
+dns proxy = no
+max log size = 40
+
+[allusers]
+comment = All Users
+path = $SHRDIR
+valid users = @users
+force group = users
+create mask = 0660
+directory mask = 0771
+writable = yes
+" > /etc/samba/smb.conf
+
+
+/etc/init.d/samba restart
+
+echo
+read -p "Choose user name (must be existing user):" USRNM
+USR="$USRNM"
+
+gpasswd -a "$USR" users
+
+smbpasswd -a "$USR"
+
+if ! which smbclient ; then
+echo "Install smbclient first."
+echo "Command to access your shared files:"
+echo "smbclient //$SRV/$SHR -U $USR"
+exit
+fi
+
+echo
+echo "Running command:"
+echo "smbclient //$SRV/$SHR -U $USR"
+echo
+
+smbclient //"$SRV"/"$SHR" -U "$USR"
+
