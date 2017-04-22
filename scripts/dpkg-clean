@@ -1,13 +1,19 @@
 #!/bin/sh
 
-echo "Clean configuration files from uninstalled packages and remove downloaded debs from /var/cache/apt/archives"
+if [ "$(whoami)" != "root" ]; then
+echo "You have to run this script as Superuser."
+exit
+fi
 
-read -p "Do you want to continue? (y/n)?" choose
+echo "Clean configuration files from uninstalled packages"
+echo "and remove downloaded debs in /var/cache/apt/archives"
+
+read -p "Do you want to continue (y/n)?" choose
 case "$choose" in
   y|Y ) echo "Continue...";;
   * ) exit;;
 esac
 
-sudo dpkg --purge "$(dpkg --get-selections | grep deinstall | cut -f1)" 2> /dev/null
+dpkg --purge "$(dpkg --get-selections | grep deinstall | cut -f1)"
 apt-get clean
 echo "All done."
