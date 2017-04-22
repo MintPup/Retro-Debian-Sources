@@ -130,7 +130,12 @@ fi
 
 DRVSALL=$(blkid | sed '/cd\|sd\|sr\|hd\|mm/!d;s,^.*/,,;s," $,,;s,:.*", ,' | grep -E -v "ntfs|swap|crypt|jfs|loop|sr0|cdrom" | cut -d" " -f1)
 NTFSDRV=$(blkid | sed '/cd\|sd\|sr\|hd\|mm/!d;s,^.*/,,;s," $,,;s,:.*", ,' | grep "ntfs" | cut -d" " -f1) #keep this line for later in case I need it for Etch and Lenny ntfs support.
+
+if $(blkid | grep "ntfs"); then
 echo "$NTFSDRV" is ntfs and you can not choose it.
+else
+echo "Continue."
+fi
 
 echo
 echo Retro-"$VER"  frugal installer
