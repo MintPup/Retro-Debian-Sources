@@ -111,6 +111,11 @@ title Retro-$VER Full install
  uuid $UUID
  kernel /boot/vmlinuz1 root=UUID=$UUID rw
  initrd /boot/initrd1.img
+ 
+title Template for Windows on sda1
+ rootnoverify (hd0,0)
+ makeactive
+ chainloader +1
 
 title Reboot computer
   reboot
