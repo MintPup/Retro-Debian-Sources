@@ -96,6 +96,11 @@ title Retro-$VER Copy to RAM (no save)
  uuid $UUID
  kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off toram=$SQFS
  initrd /$LIVEDIR/initrd1.img
+ 
+title Template for Windows on sda1
+ rootnoverify (hd0,0)
+ makeactive
+ chainloader +1
 
 " >> "$MNT"/boot/grub/menu.lst
 else
@@ -120,6 +125,11 @@ title Retro-$VER Copy to RAM (no save)
  uuid $UUID
  kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off toram=$SQFS
  initrd /$LIVEDIR/initrd1.img
+
+title Template for Windows on sda1
+ rootnoverify (hd0,0)
+ makeactive
+ chainloader +1
 
 title Reboot computer
   reboot
