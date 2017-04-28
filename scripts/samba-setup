@@ -67,8 +67,6 @@ writable = yes
 
 /etc/init.d/samba restart
 
-IPSRV=$(nmblookup "$SRV" | sed "1 d" | cut -d" " -f1)
-
 echo
 read -p "Choose user name (must be existing user):" USRNM
 USR="$USRNM"
@@ -76,6 +74,8 @@ USR="$USRNM"
 gpasswd -a "$USR" users
 
 smbpasswd -a "$USR"
+
+IPSRV=$(nmblookup "$SRV" | sed "1 d" | cut -d" " -f1)
 
 echo "
 #Workgroup for //$SRV/$SHR is:
