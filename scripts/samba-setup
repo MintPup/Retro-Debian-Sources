@@ -6,6 +6,7 @@
 # https://linux.die.net/man/1/smbclient
 # https://www.howtoforge.com/debian_etch_samba_standalone_server_with_tdbsam_backend
 # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/3/html/System_Administration_Guide/s1-samba-connect-share.html
+# 20170428 package change in Squeeze and running smbclient replaced with commands in text file.
 
 if [ "$(whoami)" != "root" ]; then
 echo "You have to run this script as Superuser!"
@@ -14,13 +15,15 @@ fi
 
 VER=etch
 SHR=allusers
+README=/tmp/mount-shares.txt
 
 echo
 echo "Retro-$VER simple samba file sharing setup."
 echo
 
+#Change below for Squeeze - smbpasswd moved in samba-common-bin package.
 if ! which smbpasswd ; then
-echo "Install samba and run the script again."
+echo "Install samba, smbclient and smbfs first."
 exit
 fi
 
@@ -64,6 +67,8 @@ writable = yes
 
 /etc/init.d/samba restart
 
+IPSRV=$(nmblookup "$SRV" | sed "1 d" | cut -d" " -f1)
+
 echo
 read -p "Choose user name (must be existing user):" USRNM
 USR="$USRNM"
@@ -72,17 +77,26 @@ gpasswd -a "$USR" users
 
 smbpasswd -a "$USR"
 
-if ! which smbclient ; then
-echo "Install smbclient first."
-echo "Command to access your shared files:"
-echo "smbclient //$SRV/$SHR -U $USR"
+echo "
+#Workgroup for //$SRV/$SHR is:
+$WRK
+
+#Shared directory is:
+$SHRDIR
+
+#Mount your shared files:
+mkdir /tmp/$SRV
+sudo mount.cifs //$IPSRV/allusers /tmp/$SRV -o user=$USR
+
+#Unmount command:
+sudo umount /tmp/$SRV
+
+#Access your shared files with smbclient:
+smbclient //$SRV/$SHR -U $USR
+" > "$README"
+
+echo
+echo Read "$README" for access and mount commands.
+echo
+
 exit
-fi
-
-echo
-echo "Running command:"
-echo "smbclient //$SRV/$SHR -U $USR"
-echo
-
-smbclient //"$SRV"/"$SHR" -U "$USR"
-
