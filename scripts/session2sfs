@@ -8,7 +8,7 @@
 # 20170418 Remove some bashism and code synchronization with:
 # https://github.com/MintPup/Retro-Debian-Sources/blob/master/scripts/remaster
 
-if [ -z "which rsync" ]; then
+if ! which rsync ; then
 echo "Install rsync and run the script again."
 exit
 fi
@@ -212,3 +212,5 @@ case "$choose" in
   y|Y ) rm -rf "$DEST";;
   * ) exit;;
 esac
+
+
