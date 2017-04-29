@@ -6,7 +6,7 @@
 # Important: test.video can be avi, mpg, mp4, flv... and must play more than any audio file you like to convert.
 # Mencoder workaround source: http://uselessdiaries.blogspot.bg/2008/04/converting-audio-files-to-mp3-using.html
 
-if [ -z "which mencoder" ];then
+if ! which mencoder ;then
 echo "This script needs mencoder installed."
 exit
 fi
