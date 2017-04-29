@@ -4,7 +4,7 @@
 # Based on: https://github.com/MintPup/Retro-Debian-Sources/blob/master/scripts/all2avi
 # 20170417 sound increase option. Useful sometimes. Recommended (0 as source).
 
-if [ -z "which mencoder" ];then
+if ! which mencoder ;then
 echo "This script needs mencoder installed."
 exit
 fi
