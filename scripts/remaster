@@ -8,7 +8,7 @@
 # 20170417 Remove some bashism, exlude_list function for rsync, some code synchronization with:
 # https://github.com/MintPup/Retro-Debian-Sources/blob/master/scripts/frugal-install-grub-legacy
 
-if [ -z "which rsync" ]; then
+if ! which rsync ; then
 echo "Install rsync and run the script again."
 exit
 fi
