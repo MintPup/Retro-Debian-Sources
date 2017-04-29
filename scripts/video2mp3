@@ -3,7 +3,7 @@
 # GNU GPL v3 applies. No warranty of any kind.
 # Based on: https://github.com/MintPup/Retro-Debian-Sources/blob/master/scripts/all2avi
 
-if [ -z "which mencoder" ];then
+if ! which mencoder ;then
 echo "This script needs mencoder installed."
 exit
 fi
@@ -27,4 +27,3 @@ case "$choose" in
   y|Y ) (for FILE in *."$EXT" ; do mencoder "$FILE" -o "$(basename "$FILE" ."$EXT")-new.mp3" -ovc frameno -oac mp3lame -lameopts cbr:br="$BIT" -of rawaudio || break; done);;
   * ) exit 0;;
 esac
-
