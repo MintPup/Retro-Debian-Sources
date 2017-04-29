@@ -3,7 +3,7 @@
 # GNU GPL v3 applies. No warranty of any kind.
 # Includes moded code from linux man pages.
 
-if [ -z "which mencoder" ];then
+if ! which mencoder ;then
 echo "This script needs mencoder installed."
 exit
 fi
@@ -29,4 +29,6 @@ case "$choose" in
   y|Y ) (for FILE in *."$EXT" ; do mencoder "$FILE" -o "$(basename "$FILE" ."$EXT")-new.avi" -oac mp3lame -ovc lavc -lavcopts vbitrate="$BIT" -vf scale="$SCALE" || break; done);;  
   * ) exit 0;;
 esac
+
+
 
