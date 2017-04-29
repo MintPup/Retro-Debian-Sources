@@ -7,7 +7,7 @@
 # FYI workaround for mencoder: http://uselessdiaries.blogspot.bg/2008/04/converting-audio-files-to-mp3-using.html
 
 
-if [ -z "which ffmpeg" ];then
+if ! which ffmpeg ;then
 echo "This script needs ffmpeg installed."
 exit
 fi
