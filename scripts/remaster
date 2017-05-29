@@ -7,6 +7,7 @@
 # http://stackoverflow.com/questions/226703/how-do-i-prompt-for-input-in-a-linux-shell-script
 # 20170417 Remove some bashism, exlude_list function for rsync, some code synchronization with:
 # https://github.com/MintPup/Retro-Debian-Sources/blob/master/scripts/frugal-install-grub-legacy
+# 20170529 Remove empty /etc/mtab lines and make it link to /proc/mounts in Retro-Etch main module.
 
 if ! which rsync ; then
 echo "Install rsync and run the script again."
@@ -155,9 +156,6 @@ rm -fr "$DEST"/var/tmp/*
 rm -fr "$DEST"/var/lib/dhcp3/*
 rm -f "$DEST""$HOME"/.serverauth*
 touch "$DEST"/var/log/dmesg
-#Uncomment next 2 lines for Etch:
-rm -fr "$DEST"/etc/mtab
-touch "$DEST"/etc/mtab
 #Etch section end.
 
 rm -f /tmp/exclude.txt
