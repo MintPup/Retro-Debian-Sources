@@ -14,4 +14,16 @@ Typing **startx** will start Jwm - Rox desktop. If it fails you need to reconfig
 sudo dpkg-reconfigure xserver-xorg
 ```
 
-If you decide to test check out the /scripts content. Use at your own risk. No warranty of any kind.
+Inside /etc/X11 you can find xorg.conf-* files for some of my machines.
+ 
+Wireless network you will have to setup from command line using wpasupplicant.
+ 
+The user account is set to ask password every time. To stop this behaviour add the user to sudo group.
+
+Jwm custom settings must be made inside /etc/menu-methods/jwm and running update-menus and jwm -restart after that.
+
+In short this system will play and convert with mencoder or ffmpeg most video formats (including x264) and will run fast on very old hardware. You can't run modern browser (anything above Firefox 3.0 will not work in Etch without workarounds). Recommended to create custom /etc/X11/xorg.conf file to get the best RAM and CPU usage performance (in general with every linux).
+
+[List of included packages in Retro-Etch.](https://github.com/MintPup/Retro-Debian-Sources/blob/master/live-etch/packages.X.txt)
+
+If you decide to test check out the /scripts content (or [here](https://github.com/MintPup/Retro-Debian-Sources/tree/master/scripts)). Use at your own risk. No warranty of any kind.
