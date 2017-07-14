@@ -26,4 +26,8 @@ In short this system will play and convert with mencoder or ffmpeg (as separate 
 
 [List of included packages in Retro-Etch.](https://github.com/MintPup/Retro-Debian-Sources/blob/master/live-etch/packages.X.txt)
 
-If you decide to test check out the /scripts content (or [here](https://github.com/MintPup/Retro-Debian-Sources/tree/master/scripts)). Type full path to the script (/scripts folder is out of $PATH). Use at your own risk. No warranty of any kind.
+If you decide to test check out the /scripts content (or [here](https://github.com/MintPup/Retro-Debian-Sources/tree/master/scripts)).
+
+Type full path to the script (/scripts folder is out of $PATH).
+
+**Use at your own risk. No warranty of any kind.**
