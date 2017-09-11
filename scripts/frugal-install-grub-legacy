@@ -22,7 +22,7 @@ fi
 SRC_DIR=$(pwd)
 VER=etch     #easy to change with lenny, squeeze, wheezy later (without spaces to add entry properly in make_menu function).
 SQFS=01-retro-"$VER".squashfs
-LIVEDIR=live-"$VER"
+LIVEDIR=retro"$VER"
 
 echo
 echo Running the installer from "$SRC_DIR".
@@ -49,7 +49,7 @@ system_copy () {
 echo Copying files from "$SRC_DIR" to "$DEST_DIR"
 mkdir "$DEST_DIR"
 cp -a "$SRC_DIR"/*.squashfs "$DEST_DIR"
-cp -f "$SRC_DIR"/initrd1.img "$DEST_DIR"
+cp -f "$SRC_DIR"/initrd* "$DEST_DIR"
 cp -f "$SRC_DIR"/vmlinuz1 "$DEST_DIR"
 sync
 }
@@ -92,9 +92,14 @@ title Retro-$VER (no save)
  kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off
  initrd /$LIVEDIR/initrd1.img
  
-title Retro-$VER Copy to RAM (no save)
+title Retro-$VER Copy to RAM main module (no save)
  uuid $UUID
  kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off toram=$SQFS
+ initrd /$LIVEDIR/initrd1.img
+ 
+title Retro-$VER Copy to RAM boot folder (no save)
+ uuid $UUID
+ kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off toram
  initrd /$LIVEDIR/initrd1.img
  
 title Template for Windows on sda1
@@ -121,11 +126,16 @@ title Retro-$VER (no save)
  kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off
  initrd /$LIVEDIR/initrd1.img
  
-title Retro-$VER Copy to RAM (no save)
+title Retro-$VER Copy to RAM main module (no save)
  uuid $UUID
  kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off toram=$SQFS
  initrd /$LIVEDIR/initrd1.img
-
+ 
+title Retro-$VER Copy to RAM boot folder (no save)
+ uuid $UUID
+ kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off toram
+ initrd /$LIVEDIR/initrd1.img
+ 
 title Template for Windows on sda1
  rootnoverify (hd0,0)
  makeactive
