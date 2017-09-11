@@ -1,0 +1,226 @@
+#!/bin/sh
+# 20161025 saintless for Retro-Debian
+# GNU GPL v3 applies. No warranty of any kind.
+# Includes moded code from examples in linux forums and man pages like:
+# http://www.murga-linux.com/puppy/viewtopic.php?t=51697
+# http://www.pro-toolz.net/data/programming/bash/Bash_fancy_menu.html
+# http://stackoverflow.com/questions/226703/how-do-i-prompt-for-input-in-a-linux-shell-script
+# https://github.com/MintPup/DebianDog-Wheezy/tree/master/scripts
+# http://ss64.com/bash/syntax-prompt.html
+# 20170716 Changes for Retro-Etch
+
+
+if [ "$(whoami)" != "root" ]; then
+echo "You have to run this script as Superuser."
+exit
+fi
+
+SRC_DIR=$(pwd)
+VER=etch     #easy to change with lenny, squeeze, wheezy later (without spaces to add entry properly in make_menu function).
+SQFS=01-retro-"$VER".squashfs
+LIVEDIR=retro"$VER"
+
+echo
+echo Running the installer from "$SRC_DIR".
+
+if [ ! -f "$SRC_DIR"/"$SQFS" ]; then
+echo "$SQFS" is missing.
+echo "Find it and run the script from there."
+exit
+fi
+
+if [ ! -f "$SRC_DIR"/initrd1.img ]; then
+echo "initrd1.img is missing."
+echo "Find it and run the script from the same directory."
+exit
+fi
+
+if [ ! -f "$SRC_DIR"/vmlinuz1 ]; then
+echo "vmlinuz1 is missing."
+echo "Find it and run the script from the same directory."
+exit
+fi
+
+system_copy () {
+echo Copying files from "$SRC_DIR" to "$DEST_DIR"
+mkdir "$DEST_DIR"
+cp -a "$SRC_DIR"/*.squashfs "$DEST_DIR"
+cp -f "$SRC_DIR"/initrd* "$DEST_DIR"
+cp -f "$SRC_DIR"/vmlinuz1 "$DEST_DIR"
+sync
+}
+
+write_grub() { # source grub4dosconfig by Masaki Shinomiya: http://www.murga-linux.com/puppy/viewtopic.php?t=51697
+cp -f /scripts/grub4dos/wee.mbr /tmp/wee.mbr
+
+# Read disk signature and partition table from MBR and write it to wee.mbr:
+dd if="$WHERETO" bs=1 skip=439 count=72 2>/dev/null | \
+	dd of=/tmp/wee.mbr bs=1 seek=439 conv=notrunc 2>/dev/null
+
+# Backup MBR
+dd if="$WHERETO" of="$MNT"/"$(basename "$WHERETO")".mbr.bak bs=512 count=63 2>/dev/null
+
+# Write grub4dos MBR
+dd if=/tmp/wee.mbr of="$WHERETO" 2>/dev/null
+rm -f /tmp/wee.mbr
+
+# install grldr
+cp -f /scripts/grub4dos/grldr "$MNT"
+sync
+
+echo "Grub4dos installed and old MBR saved. You can restore it with:"
+echo "cat $MNT/$(basename "$WHERETO").mbr.bak > $WHERETO"
+}
+
+boot_flag () {  # source: http://www.cyberciti.biz/faq/linux-unix-bsd-shell-script-to-get-digits-from-string/
+#PNUM=$(echo "$PART" | grep -o "[0-9]) 
+PNUM=$(echo "$PART" | grep -oE "[[:digit:]]{1,}")
+sfdisk -A"$PNUM" "$WHERETO" 2>/dev/null
+}
+
+make_menu () {
+# Generate boot menu.lst
+
+UUID=$(blkid -o value -s UUID "$PART")
+
+if [ -f "$MNT"/menu.lst ]; then
+echo "
+title Retro-$VER persistent in live-rw-$VER
+ uuid $UUID
+ kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off persistent persistent-subtext=$VER forcepersistentfsck
+ initrd /$LIVEDIR/initrd1.img
+
+title Retro-$VER (no save)
+ uuid $UUID
+ kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off
+ initrd /$LIVEDIR/initrd1.img
+ 
+title Retro-$VER Copy to RAM main module (no save)
+ uuid $UUID
+ kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off toram=$SQFS
+ initrd /$LIVEDIR/initrd1.img
+ 
+title Retro-$VER Copy to RAM boot folder (no save)
+ uuid $UUID
+ kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off toram
+ initrd /$LIVEDIR/initrd1.img
+ 
+title Template for Windows on sda1
+ rootnoverify (hd0,0)
+ makeactive
+ chainloader +1
+
+" >> "$MNT"/menu.lst
+else
+echo "
+# menu.lst produced by grub4dosconfig-v1.7
+color white/blue black/cyan white/black cyan/black
+#splashimage=(hd0,0)/boot/grub/bike_gua.xpm.gz
+timeout 10
+default 0
+
+title Retro-$VER persistent in live-rw-$VER
+ uuid $UUID
+ kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off persistent persistent-subtext=$VER forcepersistentfsck
+ initrd /$LIVEDIR/initrd1.img
+
+title Retro-$VER (no save)
+ uuid $UUID
+ kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off
+ initrd /$LIVEDIR/initrd1.img
+ 
+title Retro-$VER Copy to RAM main module (no save)
+ uuid $UUID
+ kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off toram=$SQFS
+ initrd /$LIVEDIR/initrd1.img
+ 
+title Retro-$VER Copy to RAM boot folder (no save)
+ uuid $UUID
+ kernel /$LIVEDIR/vmlinuz1 boot=live live-media-path=$LIVEDIR nofastboot noprompt edd=off toram
+ initrd /$LIVEDIR/initrd1.img
+ 
+title Template for Windows on sda1
+ rootnoverify (hd0,0)
+ makeactive
+ chainloader +1
+
+title Reboot computer
+  reboot
+
+" > "$MNT"/menu.lst
+fi
+}
+
+DRVSALL=$(blkid | sed '/cd\|sd\|sr\|hd\|mm/!d;s,^.*/,,;s," $,,;s,:.*", ,' | grep -E -v "ntfs|swap|crypt|jfs|loop|sr0|cdrom" | cut -d" " -f1)
+NTFSDRV=$(blkid | sed '/cd\|sd\|sr\|hd\|mm/!d;s,^.*/,,;s," $,,;s,:.*", ,' | grep "ntfs" | cut -d" " -f1) #keep this line for later in case I need it for Etch and Lenny ntfs support.
+
+if $(blkid | grep "ntfs"); then
+echo "$NTFSDRV" is ntfs.
+fi
+
+echo
+echo Retro-"$VER" frugal installer
+echo
+echo "Make sure you type the correct drive! Choose from:"
+echo "$DRVSALL"
+read -p "Type your choice, like: hda1: " DRV
+if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+read -p "No drive $DRV, try again: " DRV
+	if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+read -p "No drive $DRV, last try before exit: " DRV
+   if ! echo "$DRVSALL" | grep -wo "$DRV"; then
+echo No drive "$DRV", run the script again.
+exit
+   fi
+   fi
+fi
+
+echo Your choice is "$DRV".
+PART=/dev/"$DRV"
+WHERETO="$(echo /dev/"$DRV" | sed 's/.$//')"
+MNT=/media/"$DRV"
+DEST_DIR="$MNT"/"$LIVEDIR"
+
+mkdir -p "$MNT"
+mount "$PART" "$MNT" 2> /dev/null
+mkdir -p "$MNT"/boot
+
+# Mount RW NTFS workaround for Etch (just in case I need it later):
+#if [ "$(echo "$NTFSDRV" | grep -wo "$DRV")" ]; then
+#ntfs-3g "$PART" "$MNT" -o rw 2> /dev/null
+#else
+#mount "$PART" "$MNT" 2> /dev/null
+#fi
+
+
+# Check for "$SRC_DIR" directory.
+if [ -d "$SRC_DIR" ]; then
+echo "$SRC_DIR" found.
+else
+echo "$SRC_DIR" not available. 
+exit
+fi
+
+# Check for "$DEST_DIR" directory.
+if [ -d "$DEST_DIR" ]; then
+echo "$DEST_DIR" already exists. Please rename and run the script again.
+exit
+fi
+
+echo
+echo You can install grub4dos to "$WHERETO" mbr
+echo "But this will make any other OS on the partition not-bootable."
+echo "If you already have linux boot loader just skip this step."
+echo
+read -p "Install grub4dos to mbr? (y/n)?" choose
+case "$choose" in
+  y|Y ) write_grub && boot_flag;;
+  * ) echo "Skipping install to mbr.";;
+esac
+
+make_menu
+system_copy
+
+echo "If you do not see errors all should be OK."
+
+exit
